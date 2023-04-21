@@ -6,3 +6,12 @@ class Adsdk {
     return AdsdkPlatform.instance.getPlatformVersion();
   }
 }
+
+class FlutterAdSdk
+{
+
+
+
+
+
+}

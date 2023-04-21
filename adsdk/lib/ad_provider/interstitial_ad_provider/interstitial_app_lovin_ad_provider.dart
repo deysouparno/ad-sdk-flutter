@@ -1,5 +1,5 @@
 import 'package:adsdk/data/enums/ad_provider.dart';
-import 'package:adsdk/interfaces/interstitial_ad_provider/ad_provider.dart';
+import 'package:adsdk/interfaces/interstitial_ad_provider.dart';
 import 'package:applovin_max/applovin_max.dart';
 
 class InterstitialAppLovinAdProvider implements InterstitialAdAdProvider {
@@ -10,15 +10,12 @@ class InterstitialAppLovinAdProvider implements InterstitialAdAdProvider {
   Future<void> loadInterstitialAd(
       {required String adUnit,
       required String adProvider,
-      required Function(dynamic p1) onAdLoaded,
+      required Function(MaxAd p1) onAdLoaded,
       required Function(String p1) onAdFailedToLoad}) async {
-
     if (adProviderName != adProvider) {
       return;
     }
-
     Map? configuration = await AppLovinMAX.initialize(adUnit);
-
     if (configuration != null) {
       AppLovinMAX.loadInterstitial(adUnit);
       AppLovinMAX.setInterstitialListener(InterstitialListener(
