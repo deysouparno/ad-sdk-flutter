@@ -1,28 +1,28 @@
-import 'package:adsdk/data/model/response/ad_response/ad_mob.dart';
+import 'package:adsdk/data/model/response/ad_response/ad_mob_element.dart';
 
 class App {
   bool showAppAds;
   bool isActive;
-  String? id;
-  String? appName;
-  String? packageId;
-  String? platform;
-  int? latestVersion;
-  int? criticalVersion;
-  String? appUid;
-  List<AdMob>? adMob;
+  String id;
+  String appName;
+  String packageId;
+  String platform;
+  int latestVersion;
+  int criticalVersion;
+  String appUid;
+  List<AdMobElement> adMob;
 
   App(
       {this.showAppAds = true,
       this.isActive = true,
-      this.id,
-      this.appName,
-      this.packageId,
-      this.platform,
-      this.latestVersion,
-      this.criticalVersion,
-      this.appUid,
-      this.adMob});
+      required this.id,
+      required this.appName,
+      required this.packageId,
+      required this.platform,
+      required this.latestVersion,
+      required this.criticalVersion,
+      required this.appUid,
+      required this.adMob});
 
   factory App.fromJson(Map<String, dynamic> json) => App(
       showAppAds: json["showAppAds"],
@@ -34,5 +34,6 @@ class App {
       latestVersion: json["latestVersion"],
       criticalVersion: json["criticalVersion"],
       appUid: json["appUid"],
-      adMob: List<AdMob>.from(json["adMob"].map((x) => AdMob.fromJson(x))));
+      adMob: List<AdMobElement>.from(
+          json["adMob"].map((x) => AdMobElement.fromJson(x))));
 }

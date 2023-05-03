@@ -1,7 +1,8 @@
-abstract class InterstitialAdAdProvider {
+abstract class RewardedAdInterface {
+
   String get adProviderName;
 
-  Future<void> loadInterstitialAd(
+  Future<void> loadRewardedAd(
       {required String adUnit,
       required String adProvider,
       required Function(dynamic) onAdLoaded,

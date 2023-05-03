@@ -1,17 +1,18 @@
 import 'dart:developer';
+import 'package:adsdk/interfaces/network_requester/network_requester_interface.dart';
 import 'package:adsdk/service/rsa_key_generator_service.dart';
 import 'package:adsdk/utils/constants.dart';
 import 'package:dio/dio.dart';
 
 String get baseUrl => URLs.baseURL;
 
-class NetworkRequester {
+class NetworkRequester implements NetworkRequesterInterface {
   late Dio _dio;
-
   static NetworkRequester? _instance;
 
   static NetworkRequester get instance => _instance ??= NetworkRequester();
 
+  @override
   Future<void> prepareRequest() async {
     String authToken = await _fetchToken();
 
@@ -44,10 +45,8 @@ class NetworkRequester {
 
   _printLog(Object object) => log(object.toString());
 
-  Future<dynamic> get({
-    required String path,
-    Map<String, dynamic>? query,
-  }) async {
+  @override
+  Future get({required String path, Map<String, dynamic>? query}) async {
     try {
       final response = await _dio.get(path, queryParameters: query);
       if (response.data != null) {
@@ -58,11 +57,11 @@ class NetworkRequester {
     }
   }
 
-  Future<dynamic> post({
-    required String path,
-    Map<String, dynamic>? query,
-    Map<String, dynamic>? data,
-  }) async {
+  @override
+  Future post(
+      {required String path,
+      Map<String, dynamic>? query,
+      Map<String, dynamic>? data}) async {
     try {
       final response = await _dio.post(
         path,

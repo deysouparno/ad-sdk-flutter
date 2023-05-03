@@ -1,9 +1,9 @@
 import 'package:adsdk/data/enums/ad_provider.dart';
-import 'package:adsdk/interfaces/app_open_ad_provider.dart';
+import 'package:adsdk/interfaces/app_open_interface/app_open_ad_interface.dart';
 import 'package:adsdk/utils/utils.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 
-class AppOpenAdMobAdProvider implements AppOpenAdAdProvider {
+class AppOpenAdMobAdProvider implements AppOpenAdAdInterface {
   @override
   String get adProviderName => AdProvider.ADMOB.name.toLowerCase();
 

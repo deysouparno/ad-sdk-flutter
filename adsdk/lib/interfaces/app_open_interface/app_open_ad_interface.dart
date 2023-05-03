@@ -1,4 +1,4 @@
-abstract class AppOpenAdAdProvider {
+abstract class AppOpenAdAdInterface {
   String get adProviderName;
 
   Future<void> loadAppOpenAd(

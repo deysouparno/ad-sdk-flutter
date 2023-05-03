@@ -1,33 +1,30 @@
-import 'dart:developer';
-
 import 'package:adsdk/data/enums/ad_provider.dart';
-import 'package:adsdk/interfaces/interstital_interface/interstitial_ad_interface.dart';
+import 'package:adsdk/interfaces/rewarded_ad_interface/rewarded_ad_interface.dart';
 import 'package:adsdk/utils/utils.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 
-class InterstitialAdMobAdProvider implements InterstitialAdInterface {
+class RewardedAdMobAdProvider implements RewardedAdInterface {
   @override
   String get adProviderName => AdProvider.ADMOB.name.toLowerCase();
 
   @override
-  Future<void> loadInterstitialAd(
+  Future<void> loadRewardedAd(
       {required String adUnit,
       required String adProvider,
-      required Function(InterstitialAd p1) onAdLoaded,
+      required Function(dynamic p1) onAdLoaded,
       required Function(String p1) onAdFailedToLoad}) async {
     if (adProviderName != adProvider) {
       return;
     }
-    InterstitialAd.load(
+    RewardedAd.load(
       adUnitId: adUnit,
       request: Utils.getAdRequest(),
-      adLoadCallback: InterstitialAdLoadCallback(
-        onAdLoaded: (ad) {
-          log('InterstitialAd Loaded');
+      rewardedAdLoadCallback: RewardedAdLoadCallback(
+        onAdLoaded: (RewardedAd ad) {
           onAdLoaded(ad);
         },
-        onAdFailedToLoad: (adError) {
-          onAdFailedToLoad(adError.toString());
+        onAdFailedToLoad: (LoadAdError error) {
+          onAdFailedToLoad(error.toString());
         },
       ),
     );

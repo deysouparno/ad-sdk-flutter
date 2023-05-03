@@ -1,8 +1,8 @@
 import 'package:adsdk/data/enums/ad_provider.dart';
-import 'package:adsdk/interfaces/app_open_ad_provider.dart';
+import 'package:adsdk/interfaces/app_open_interface/app_open_ad_interface.dart';
 import 'package:applovin_max/applovin_max.dart';
 
-class AppOpenAppLovinAdProvider extends AppOpenAdAdProvider {
+class AppOpenAppLovinAdProvider extends AppOpenAdAdInterface {
   @override
   String get adProviderName => AdProvider.APPLOVIN.name.toLowerCase();
 
