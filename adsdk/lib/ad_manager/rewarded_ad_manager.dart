@@ -21,8 +21,6 @@ class RewardedAdManager {
     required String primaryAdUnitProvider,
     required String secondaryAdUnitProvider,
   }) {
-    Completer adCompleter = Completer();
-
     for (String adUnit in primaryAdUnitIds) {
       _adUnits.add(adUnit);
       _adUnitsProvider.add(primaryAdUnitProvider);
