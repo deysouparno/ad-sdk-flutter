@@ -1,5 +1,6 @@
 import 'package:adsdk_example/components/appopen_ad_component.dart';
 import 'package:adsdk_example/components/interstitial_ad_component.dart';
+import 'package:adsdk_example/components/rewarded_ad_component.dart';
 import 'package:flutter/material.dart';
 
 class HomePage extends StatefulWidget {
@@ -27,6 +28,8 @@ class _HomePageState extends State<HomePage> {
           InterstitialAdComponent(),
           SizedBox(height: 16),
           AppOpenAdComponent(),
+          SizedBox(height: 16),
+          RewardedAdComponent(),
         ],
       ),
     );

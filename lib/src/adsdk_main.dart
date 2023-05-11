@@ -1,5 +1,6 @@
 import 'package:adsdk/src/adsdk/adsdk_appopen_ad.dart';
 import 'package:adsdk/src/adsdk/adsdk_interstitial_ad.dart';
+import 'package:adsdk/src/adsdk/adsdk_rewarded_ad.dart';
 import 'package:adsdk/src/internal/enums/ap_type.dart';
 import 'package:adsdk/src/internal/models/ad_sdk_configuration.dart';
 import 'package:adsdk/src/internal/models/api_response.dart';
@@ -67,14 +68,13 @@ abstract class AdSdk {
     required String adName,
     AdSdkInterstitialAdListener? adSdkInterstitialAdListener,
     AdSdkAppOpenAdListener? adSdkAppOpenAdListener,
+    AdSdkRewardedAdListener? adSdkRewardedAdListener,
   }) {
     if (!_isInitialized) {
-      adSdkInterstitialAdListener?.onAdFailedToLoad(
-        [AdSdkLogger.error("AdSdk not initialized.")],
-      );
-      adSdkAppOpenAdListener?.onAdFailedToLoad(
-        [AdSdkLogger.error("AdSdk not initialized.")],
-      );
+      const error = "AdSdk not initialized.";
+      adSdkInterstitialAdListener?.onAdFailedToLoad([AdSdkLogger.error(error)]);
+      adSdkAppOpenAdListener?.onAdFailedToLoad([AdSdkLogger.error(error)]);
+      adSdkRewardedAdListener?.onAdFailedToLoad([AdSdkLogger.error(error)]);
       return;
     }
 
@@ -84,6 +84,7 @@ abstract class AdSdk {
       const error = "Please provided corrent adName.";
       adSdkInterstitialAdListener?.onAdFailedToLoad([AdSdkLogger.error(error)]);
       adSdkAppOpenAdListener?.onAdFailedToLoad([AdSdkLogger.error(error)]);
+      adSdkRewardedAdListener?.onAdFailedToLoad([AdSdkLogger.error(error)]);
       return;
     }
     if (!ad.isActive) {
@@ -91,6 +92,7 @@ abstract class AdSdk {
 
       adSdkInterstitialAdListener?.onAdFailedToLoad([AdSdkLogger.error(error)]);
       adSdkAppOpenAdListener?.onAdFailedToLoad([AdSdkLogger.error(error)]);
+      adSdkRewardedAdListener?.onAdFailedToLoad([AdSdkLogger.error(error)]);
       return;
     }
 
@@ -115,6 +117,16 @@ abstract class AdSdk {
         secondaryIds: ad.secondaryIds,
         adRequest: _configuration.adRequest,
         adSdkAppOpenAdListener: adSdkAppOpenAdListener,
+      );
+    } else if (ad.adType == AdUnitType.rewarded) {
+      AdSdkRewardedAd.load(
+        adName: adName,
+        primaryAdProvider: ad.primaryAdprovider,
+        secondaryAdProvider: ad.secondaryAdprovider,
+        primaryIds: ad.primaryIds,
+        secondaryIds: ad.secondaryIds,
+        adRequest: _configuration.adRequest,
+        adSdkRewardedAdListener: adSdkRewardedAdListener,
       );
     }
   }
