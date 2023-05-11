@@ -1,1 +1,0 @@
-enum NativeAdSize { SMALL, MEDIUM, BIGV1, BIGV2, BIGV3, GRID_AD, DEFAULT }

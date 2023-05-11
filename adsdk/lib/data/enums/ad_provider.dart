@@ -1,1 +1,0 @@
-enum AdProvider { ADMOB, ADMANAGER, APPLOVIN, UNKNOWN }

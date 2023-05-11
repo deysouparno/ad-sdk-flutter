@@ -1,1 +1,0 @@
-enum UpdateType { SOFT_UPDATE, HARD_UPDATE, NO_UPDATE }
