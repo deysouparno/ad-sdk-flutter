@@ -1,5 +1,3 @@
-import 'dart:developer';
-
 import 'package:adsdk/src/admanager/admanager_banner_ad.dart';
 import 'package:adsdk/src/admob/admob_banner_ad.dart';
 import 'package:adsdk/src/applovin/applovin_banner_ad.dart';
