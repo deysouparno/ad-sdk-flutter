@@ -65,7 +65,6 @@ class _AppOpenAdComponentState extends State<AppOpenAdComponent> {
   @override
   Widget build(BuildContext context) {
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const Text(
           "AppOpen Ads",
@@ -74,11 +73,7 @@ class _AppOpenAdComponentState extends State<AppOpenAdComponent> {
         const SizedBox(height: 16),
         Column(
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-          children: [
-            "admob_appopen",
-            "admanager_appopen",
-            "applovin_appopen"
-          ]
+          children: ["admob_appopen", "admanager_appopen", "applovin_appopen"]
               .map(
                 (adName) => ListTile(
                   contentPadding: EdgeInsets.zero,

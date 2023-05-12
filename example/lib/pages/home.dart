@@ -1,4 +1,5 @@
 import 'package:adsdk_example/components/appopen_ad_component.dart';
+import 'package:adsdk_example/components/banner_ad_component.dart';
 import 'package:adsdk_example/components/interstitial_ad_component.dart';
 import 'package:adsdk_example/components/rewarded_ad_component.dart';
 import 'package:flutter/material.dart';
@@ -21,15 +22,24 @@ class _HomePageState extends State<HomePage> {
           "Test Ads",
           style: TextStyle(fontWeight: FontWeight.bold),
         ),
+        centerTitle: true,
       ),
       body: ListView(
-        padding: const EdgeInsets.all(16.0),
-        children: const [
-          InterstitialAdComponent(),
-          SizedBox(height: 16),
-          AppOpenAdComponent(),
-          SizedBox(height: 16),
-          RewardedAdComponent(),
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              children: const [
+                InterstitialAdComponent(),
+                SizedBox(height: 16),
+                AppOpenAdComponent(),
+                SizedBox(height: 16),
+                RewardedAdComponent(),
+              ],
+            ),
+          ),
+          const SizedBox(height: 16),
+          const BannerAdComponent(),
         ],
       ),
     );

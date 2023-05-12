@@ -1,7 +1,8 @@
 import 'dart:convert';
 
 import 'package:adsdk/src/internal/enums/ad_provider.dart';
-import 'package:adsdk/src/internal/enums/ap_type.dart';
+import 'package:adsdk/src/internal/enums/ad_size.dart';
+import 'package:adsdk/src/internal/enums/ad_type.dart';
 
 class AdSdkApiResponse {
   final String status;
@@ -39,7 +40,7 @@ class AdSdkApp {
   final int latestVersion;
   final int criticalVersion;
   final String appUid;
-  final List<AdSdkAd> ads;
+  final List<AdSdkAdConfig> ads;
   final String createdAt;
   final String updatedAt;
   final int v;
@@ -77,9 +78,9 @@ class AdSdkApp {
       latestVersion: map['latestVersion'] ?? 0,
       criticalVersion: map['criticalVersion'] ?? 0,
       appUid: map['appUid'] ?? "",
-      ads: List<AdSdkAd>.from(
-        (map['adMob'] ?? []).map<AdSdkAd>(
-          (x) => AdSdkAd.fromMap(x),
+      ads: List<AdSdkAdConfig>.from(
+        (map['adMob'] ?? []).map<AdSdkAdConfig>(
+          (x) => AdSdkAdConfig.fromMap(x),
         ),
       ),
       createdAt: map['createdAt'] ?? "",
@@ -92,7 +93,7 @@ class AdSdkApp {
       AdSdkApp.fromMap(json.decode(source) as Map<String, dynamic>);
 }
 
-class AdSdkAd {
+class AdSdkAdConfig {
   final List<String> primaryIds;
   final List<String> secondaryIds;
   final String id;
@@ -108,12 +109,12 @@ class AdSdkAd {
   final String textColorDark;
   final String bgColor;
   final String bgColorDark;
-  final String size;
+  final AdSdkAdSize size;
   final int primaryAdloadTimeoutMs;
   final int backgroundThreshold;
   final int mediaHeight;
 
-  AdSdkAd({
+  AdSdkAdConfig({
     required this.primaryIds,
     required this.secondaryIds,
     required this.id,
@@ -135,8 +136,8 @@ class AdSdkAd {
     required this.mediaHeight,
   });
 
-  factory AdSdkAd.fromMap(Map<String, dynamic> map) {
-    return AdSdkAd(
+  factory AdSdkAdConfig.fromMap(Map<String, dynamic> map) {
+    return AdSdkAdConfig(
       primaryIds: List<String>.from(map['primary_ids'] ?? []),
       secondaryIds: List<String>.from(map['secondary_ids'] ?? []),
       id: map['_id'] ?? "",
@@ -154,13 +155,13 @@ class AdSdkAd {
       textColorDark: map['text_color_dark'] ?? "",
       bgColor: map['bg_color'] ?? "",
       bgColorDark: map['bg_color_dark'] ?? "",
-      size: map['size'] ?? "",
+      size: ((map['size'] ?? "") as String).adSdkAdSize,
       primaryAdloadTimeoutMs: map['primary_adload_timeout_ms'] ?? 0,
       backgroundThreshold: map['background_threshold'] ?? 0,
       mediaHeight: map['mediaHeight'] ?? 0,
     );
   }
 
-  factory AdSdkAd.fromJson(String source) =>
-      AdSdkAd.fromMap(json.decode(source) as Map<String, dynamic>);
+  factory AdSdkAdConfig.fromJson(String source) =>
+      AdSdkAdConfig.fromMap(json.decode(source) as Map<String, dynamic>);
 }

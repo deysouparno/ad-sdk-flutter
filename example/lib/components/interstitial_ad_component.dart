@@ -72,7 +72,6 @@ class _InterstitialAdComponentState extends State<InterstitialAdComponent> {
   @override
   Widget build(BuildContext context) {
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const Text(
           "Interstitial Ads",

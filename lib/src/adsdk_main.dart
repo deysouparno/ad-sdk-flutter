@@ -1,17 +1,20 @@
 import 'package:adsdk/src/adsdk/adsdk_appopen_ad.dart';
+import 'package:adsdk/src/adsdk/adsdk_banner_ad.dart';
 import 'package:adsdk/src/adsdk/adsdk_interstitial_ad.dart';
 import 'package:adsdk/src/adsdk/adsdk_rewarded_ad.dart';
-import 'package:adsdk/src/internal/enums/ap_type.dart';
+import 'package:adsdk/src/adsdk/widgets/adsdk_banner_ad_widget.dart';
+import 'package:adsdk/src/internal/enums/ad_type.dart';
 import 'package:adsdk/src/internal/models/ad_sdk_configuration.dart';
 import 'package:adsdk/src/internal/models/api_response.dart';
 import 'package:adsdk/src/internal/services/api_service.dart';
 import 'package:adsdk/src/internal/utils/adsdk_logger.dart';
 import 'package:applovin_max/applovin_max.dart';
+import 'package:flutter/material.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 
 abstract class AdSdk {
   static late AdSdkConfiguration _configuration;
-  static final Map<String, AdSdkAd> _ads = {};
+  static final Map<String, AdSdkAdConfig> _ads = {};
   static bool _isInitialized = false;
 
   static bool get isInitialized => _isInitialized;
@@ -35,7 +38,7 @@ abstract class AdSdk {
       return;
     }
 
-    for (AdSdkAd ad in resp.app.ads) {
+    for (AdSdkAdConfig ad in resp.app.ads) {
       _ads[ad.adName] = ad;
     }
 
@@ -69,6 +72,7 @@ abstract class AdSdk {
     AdSdkInterstitialAdListener? adSdkInterstitialAdListener,
     AdSdkAppOpenAdListener? adSdkAppOpenAdListener,
     AdSdkRewardedAdListener? adSdkRewardedAdListener,
+    AdSdkBannerAdListener? adSdkBannerAdListener,
   }) {
     if (!_isInitialized) {
       const error = "AdSdk not initialized.";
@@ -81,10 +85,11 @@ abstract class AdSdk {
     final ad = _ads[adName];
 
     if (ad == null) {
-      const error = "Please provided corrent adName.";
+      const error = "Please provided correct adName.";
       adSdkInterstitialAdListener?.onAdFailedToLoad([AdSdkLogger.error(error)]);
       adSdkAppOpenAdListener?.onAdFailedToLoad([AdSdkLogger.error(error)]);
       adSdkRewardedAdListener?.onAdFailedToLoad([AdSdkLogger.error(error)]);
+      adSdkBannerAdListener?.onAdFailedToLoad([AdSdkLogger.error(error)]);
       return;
     }
     if (!ad.isActive) {
@@ -93,6 +98,7 @@ abstract class AdSdk {
       adSdkInterstitialAdListener?.onAdFailedToLoad([AdSdkLogger.error(error)]);
       adSdkAppOpenAdListener?.onAdFailedToLoad([AdSdkLogger.error(error)]);
       adSdkRewardedAdListener?.onAdFailedToLoad([AdSdkLogger.error(error)]);
+      adSdkBannerAdListener?.onAdFailedToLoad([AdSdkLogger.error(error)]);
       return;
     }
 
@@ -128,6 +134,27 @@ abstract class AdSdk {
         adRequest: _configuration.adRequest,
         adSdkRewardedAdListener: adSdkRewardedAdListener,
       );
+    } else if (ad.adType == AdUnitType.banner) {
+      AdSdkBannerAd.load(
+        adName: adName,
+        primaryAdProvider: ad.primaryAdprovider,
+        secondaryAdProvider: ad.secondaryAdprovider,
+        primaryIds: ad.primaryIds,
+        secondaryIds: ad.secondaryIds,
+        adRequest: _configuration.adRequest,
+        adManagerAdRequest: _configuration.adManagerAdRequest,
+        adSdkBannerAdListener: adSdkBannerAdListener,
+        adSdkAdSize: ad.size,
+      );
     }
+  }
+
+  static Widget createBannerAd(String adName) {
+    final ad = _ads[adName];
+    if (ad == null) {
+      AdSdkLogger.error("Please provided correct adName.");
+      return const SizedBox.shrink();
+    }
+    return AdSdkBannerAdWidget(adSdkAdConfig: ad);
   }
 }
