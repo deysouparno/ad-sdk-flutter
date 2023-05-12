@@ -1,3 +1,4 @@
+import 'package:adsdk/adsdk.dart';
 import 'package:adsdk_example/components/appopen_ad_component.dart';
 import 'package:adsdk_example/components/banner_ad_component.dart';
 import 'package:adsdk_example/components/interstitial_ad_component.dart';
@@ -14,6 +15,12 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
+  @override
+  void initState() {
+    super.initState();
+    AdSdk.setAppOpenLifecycleReactor("appopen_bg_to_fg");
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -35,11 +42,12 @@ class _HomePageState extends State<HomePage> {
                 AppOpenAdComponent(),
                 SizedBox(height: 16),
                 RewardedAdComponent(),
+                SizedBox(height: 16),
               ],
             ),
           ),
-          const SizedBox(height: 16),
           const BannerAdComponent(),
+          const SizedBox(height: 16),
         ],
       ),
     );

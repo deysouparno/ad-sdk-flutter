@@ -1,6 +1,7 @@
 import 'package:adsdk/src/adsdk/adsdk_appopen_ad.dart';
 import 'package:adsdk/src/adsdk/adsdk_banner_ad.dart';
 import 'package:adsdk/src/adsdk/adsdk_interstitial_ad.dart';
+import 'package:adsdk/src/adsdk/adsdk_lifecycle_reactor.dart';
 import 'package:adsdk/src/adsdk/adsdk_rewarded_ad.dart';
 import 'package:adsdk/src/adsdk/widgets/adsdk_banner_ad_widget.dart';
 import 'package:adsdk/src/internal/enums/ad_type.dart';
@@ -156,5 +157,12 @@ abstract class AdSdk {
       return const SizedBox.shrink();
     }
     return AdSdkBannerAdWidget(adSdkAdConfig: ad);
+  }
+
+  static void setAppOpenLifecycleReactor(String adName) {
+    final config = _ads[adName];
+    if (config == null) return;
+    AdSdkLogger.info("Setting up AppOpenLifecycleReactor for ad $adName");
+    AppLifecycleReactor(config: config).listenToAppStateChanges();
   }
 }
