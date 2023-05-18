@@ -1,20 +1,20 @@
 import 'dart:async';
 
-import 'package:adsdk/src/internal/models/ad_result.dart';
+import 'package:adsdk/src/internal/models/ad_sdk_raw_ad.dart';
 import 'package:applovin_max/applovin_max.dart';
 
 abstract class ApplovinInterstitialAd {
-  static Future<AdResult<MaxAd>> load({
-    required String adUnitId,
-  }) async {
-    final c = Completer<AdResult<MaxAd>>();
+  static Future<AdSdkRawAd<MaxAd>> load(String adUnitId) async {
+    final c = Completer<AdSdkRawAd<MaxAd>>();
     AppLovinMAX.setInterstitialListener(
       InterstitialListener(
         onAdLoadedCallback: (ad) {
-          if (ad.adUnitId == adUnitId) c.complete(AdResult<MaxAd>(ad: ad));
+          if (ad.adUnitId == adUnitId) c.complete(AdSdkRawAd(ad: ad));
         },
         onAdLoadFailedCallback: (id, error) {
-          if (id == adUnitId) c.complete(AdResult<MaxAd>(error: error.message));
+          if (id == adUnitId) {
+            c.complete(AdSdkRawAd(error: error.message));
+          }
         },
         onAdDisplayedCallback: (ad) => null,
         onAdDisplayFailedCallback: (ad, error) => null,
