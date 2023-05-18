@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:adsdk/src/internal/constants/constants.dart';
 import 'package:adsdk/src/internal/constants/private_keys.dart';
 import 'package:adsdk/src/internal/models/api_response.dart';
@@ -22,7 +24,7 @@ abstract class ApiService {
               "Bearer ${JwtGenerator.generateToken(PrivateKeys.jwtPrivateKey, userId: "test_user", api: "users")}"
         },
       );
-      AdSdkLogger.info(resp.body);
+      log(resp.body);
       return AdSdkApiResponse.fromJson(resp.body);
     } catch (e) {
       AdSdkLogger.error(e.toString());

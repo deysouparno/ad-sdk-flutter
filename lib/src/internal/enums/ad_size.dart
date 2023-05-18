@@ -1,9 +1,12 @@
+import 'package:applovin_max/applovin_max.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 
 enum AdSdkAdSize {
   banner("banner"),
   largeBanner("large_banner"),
-  mediumBanner("medium_banner");
+  mediumBanner("medium_rectangle"),
+  smallNative("small"),
+  mediumNative("medium");
 
   final String key;
 
@@ -16,13 +19,17 @@ extension AdSdkAdSizeStringExtension on String {
       return AdSdkAdSize.largeBanner;
     } else if (toLowerCase() == AdSdkAdSize.mediumBanner.key.toLowerCase()) {
       return AdSdkAdSize.mediumBanner;
+    } else if (toLowerCase() == AdSdkAdSize.smallNative.key.toLowerCase()) {
+      return AdSdkAdSize.smallNative;
+    } else if (toLowerCase() == AdSdkAdSize.mediumNative.key.toLowerCase()) {
+      return AdSdkAdSize.mediumNative;
     }
     return AdSdkAdSize.banner;
   }
 }
 
 extension AdSdkAdSizeExtension on AdSdkAdSize {
-  AdSize get adSize {
+  AdSize get admobSize {
     switch (this) {
       case AdSdkAdSize.largeBanner:
         return AdSize.largeBanner;
@@ -30,6 +37,24 @@ extension AdSdkAdSizeExtension on AdSdkAdSize {
         return AdSize.mediumRectangle;
       default:
         return AdSize.banner;
+    }
+  }
+
+  AdFormat get applovinSize {
+    switch (this) {
+      case AdSdkAdSize.mediumBanner:
+        return AdFormat.mrec;
+      default:
+        return AdFormat.banner;
+    }
+  }
+
+  String get factoryId {
+    switch (this) {
+      case AdSdkAdSize.mediumNative:
+        return "nativeAdView";
+      default:
+        return "smallNativeAdView";
     }
   }
 }

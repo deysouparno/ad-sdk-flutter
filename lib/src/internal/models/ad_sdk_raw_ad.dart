@@ -1,8 +1,8 @@
-class AdResult<T> {
+class AdSdkRawAd<T> {
   final T? ad;
   final String? error;
 
-  AdResult({
+  AdSdkRawAd({
     this.ad,
     this.error,
   });

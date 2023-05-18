@@ -1,9 +1,6 @@
 import 'package:adsdk/adsdk.dart';
-import 'package:adsdk_example/models/ad_store.dart';
 import 'package:adsdk_example/utils/app_toast.dart';
-import 'package:applovin_max/applovin_max.dart';
 import 'package:flutter/material.dart';
-import 'package:google_mobile_ads/google_mobile_ads.dart';
 
 class RewardedAdComponent extends StatefulWidget {
   const RewardedAdComponent({super.key});
@@ -13,13 +10,13 @@ class RewardedAdComponent extends StatefulWidget {
 }
 
 class _RewardedAdComponentState extends State<RewardedAdComponent> {
-  final Map<String, AdStore?> ads = {};
+  final Map<String, AdSdkAd?> ads = {};
 
-  void setAdLoaded(String adName, AdStore? adStore) {
-    if (adStore != null) {
+  void setAdLoaded(String adName, AdSdkAd? adSdkAd) {
+    if (adSdkAd != null) {
       AppToast.showToast(context, "$adName Loaded");
     }
-    setState(() => ads[adName] = adStore);
+    setState(() => ads[adName] = adSdkAd);
   }
 
   void loadRewardedAd(String adName) {
@@ -27,49 +24,28 @@ class _RewardedAdComponentState extends State<RewardedAdComponent> {
 
     AdSdk.loadAd(
       adName: adName,
-      adSdkRewardedAdListener: AdSdkRewardedAdListener(
-        onAdFailedToLoad: (errors) {
-          AppToast.showToast(context, errors.first);
-        },
-        onAdmobAdLoaded: (ad) {
-          setAdLoaded(
-            adName,
-            AdStore(ad: ad, adProvider: AdProvider.admob),
-          );
-        },
-        onApplovinAdLoaded: (ad) => {
-          setAdLoaded(
-            adName,
-            AdStore(ad: ad, adProvider: AdProvider.applovin),
-          )
-        },
-      ),
+      onAdFailedToLoad: (errors) {
+        AppToast.showToast(context, errors.first);
+      },
+      onAdLoaded: (ad) {
+        setAdLoaded(adName, ad);
+      },
     );
   }
 
   void showRewardedAd(String adName) {
-    switch (ads[adName]?.adProvider) {
-      case AdProvider.admob:
-        (ads[adName]?.ad as RewardedAd).show(
-          onUserEarnedReward: (ad, reward) {},
-        );
-        break;
-      case AdProvider.admanager:
-        (ads[adName]?.ad as RewardedAd).show(
-          onUserEarnedReward: (ad, reward) {},
-        );
-        break;
-      case AdProvider.applovin:
-        AppLovinMAX.showRewardedAd(ads[adName]?.ad.adUnitId);
-        break;
-      default:
-    }
+    ads[adName]?.show(
+      onAdDismissedFullScreenContent: (ad) {},
+      onAdShowedFullScreenContent: (ad) {},
+    );
     setAdLoaded(adName, null);
   }
 
   @override
   Widget build(BuildContext context) {
     return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+
       children: [
         const Text(
           "Rewarded Ads",
@@ -93,7 +69,9 @@ class _RewardedAdComponentState extends State<RewardedAdComponent> {
                         },
                         child: Text(ads[adName] != null ? "Show" : "Load"),
                       ),
-                      title: Text(adName),
+                      title: Text(
+                          "Ad Provider: ${ads[adName]?.adProvider.key ?? "Not Loaded"}"),
+                      subtitle: Text(adName),
                     ),
                   )
                   .toList(),

@@ -1,126 +1,90 @@
+import 'package:adsdk/src/internal/enums/ad_provider.dart';
+import 'package:adsdk/src/internal/enums/ad_type.dart';
+import 'package:adsdk/src/internal/enums/ad_size.dart';
 import 'package:adsdk/src/admanager/admanager_banner_ad.dart';
 import 'package:adsdk/src/admob/admob_banner_ad.dart';
-import 'package:adsdk/src/applovin/applovin_banner_ad.dart';
-import 'package:adsdk/src/internal/enums/ad_size.dart';
+import 'package:adsdk/src/internal/models/ad_sdk_ad.dart';
+import 'package:adsdk/src/internal/models/api_response.dart';
 import 'package:adsdk/src/internal/utils/adsdk_logger.dart';
-import 'package:applovin_max/applovin_max.dart';
-import 'package:google_mobile_ads/google_mobile_ads.dart';
-
-import 'package:adsdk/src/internal/enums/ad_provider.dart';
 
 abstract class AdSdkBannerAd {
-  static void load({
-    required String adName,
-    required AdProvider primaryAdProvider,
-    required AdProvider secondaryAdProvider,
-    required List<String> primaryIds,
-    required List<String> secondaryIds,
-    required AdRequest adRequest,
-    required AdManagerAdRequest adManagerAdRequest,
-    required AdSdkAdSize adSdkAdSize,
-    AdSdkBannerAdListener? adSdkBannerAdListener,
+  static load({
+    required AdSdkAdConfig adConfig,
+    required Function(List<String> errors) onAdFailedToLoad,
+    required Function(AdSdkAd ad) onAdLoaded,
   }) async {
+    final primaryAdProvider = adConfig.primaryAdprovider;
+    final secondaryAdProvider = adConfig.secondaryAdprovider;
+    final primaryIds = adConfig.primaryIds;
+    final secondaryIds = adConfig.secondaryIds;
     final List<String> errors = [];
 
-    for (var ad in primaryIds) {
-      if (primaryAdProvider == AdProvider.admanager) {
-        final resp = await AdmanagerBannerAd.load(
-          adUnitId: ad,
-          request: adManagerAdRequest,
-          adSize: adSdkAdSize.adSize,
-        );
-        if (resp.ad != null) {
-          AdSdkLogger.adLoadedLog(
-              adName: adName, adProvider: primaryAdProvider);
-          adSdkBannerAdListener?.onAdmanagerAdLoaded(resp.ad!);
-          return;
-        }
-        if (resp.error != null) errors.add(resp.error!);
-      } else if (primaryAdProvider == AdProvider.applovin &&
-          (await AppLovinMAX.isInitialized() ?? false)) {
-        final resp = await ApplovinBannerAd.load(adUnitId: ad);
-        if (resp.ad != null) {
-          AdSdkLogger.adLoadedLog(
-              adName: adName, adProvider: primaryAdProvider);
-          adSdkBannerAdListener?.onApplovinAdLoaded(resp.ad!);
-          return;
-        }
-        if (resp.error != null) errors.add(resp.error!);
-      } else {
-        final resp = await AdmobBannerAd.load(
-          adUnitId: ad,
-          request: adRequest,
-          adSize: adSdkAdSize.adSize,
-        );
-        if (resp.ad != null) {
-          AdSdkLogger.adLoadedLog(
-              adName: adName, adProvider: primaryAdProvider);
-          adSdkBannerAdListener?.onAdmobAdLoaded(resp.ad!);
-          return;
-        }
-        if (resp.error != null) errors.add(resp.error!);
-      }
-    }
-
-    AdSdkLogger.debug(
-      "Primary ad provider (${primaryAdProvider.key}) failed for ad - $adName",
+    AdSdkAd ad = AdSdkAd(
+      ad: null,
+      adName: adConfig.adName,
+      adUnitId: "",
+      adProvider: primaryAdProvider,
+      adUnitType: AdUnitType.banner,
     );
 
-    for (var ad in secondaryIds) {
-      if (secondaryAdProvider == AdProvider.admanager) {
+    for (var adUnitId in primaryIds) {
+      ad = ad.copyWith(adUnitId: adUnitId);
+
+      if (primaryAdProvider == AdProvider.admanager) {
         final resp = await AdmanagerBannerAd.load(
-          adUnitId: ad,
-          request: adManagerAdRequest,
-          adSize: adSdkAdSize.adSize,
+          adUnitId: adUnitId,
+          adSize: adConfig.size.admobSize,
         );
         if (resp.ad != null) {
           AdSdkLogger.adLoadedLog(
-              adName: adName, adProvider: secondaryAdProvider);
-          adSdkBannerAdListener?.onAdmanagerAdLoaded(resp.ad!);
-          return;
-        }
-        if (resp.error != null) errors.add(resp.error!);
-      } else if (secondaryAdProvider == AdProvider.applovin &&
-          (await AppLovinMAX.isInitialized() ?? false)) {
-        final resp = await ApplovinBannerAd.load(adUnitId: ad);
-        if (resp.ad != null) {
-          AdSdkLogger.adLoadedLog(
-              adName: adName, adProvider: secondaryAdProvider);
-          adSdkBannerAdListener?.onApplovinAdLoaded(resp.ad!);
-          return;
+              adName: adConfig.adName, adProvider: primaryAdProvider);
+          return onAdLoaded(ad.copyWith(ad: resp.ad));
         }
         if (resp.error != null) errors.add(resp.error!);
       } else {
         final resp = await AdmobBannerAd.load(
-          adUnitId: ad,
-          request: adRequest,
-          adSize: adSdkAdSize.adSize,
+          adUnitId: adUnitId,
+          adSize: adConfig.size.admobSize,
         );
         if (resp.ad != null) {
           AdSdkLogger.adLoadedLog(
-              adName: adName, adProvider: secondaryAdProvider);
-          adSdkBannerAdListener?.onAdmobAdLoaded(resp.ad!);
-          return;
+              adName: adConfig.adName, adProvider: primaryAdProvider);
+          return onAdLoaded(ad.copyWith(ad: resp.ad));
         }
         if (resp.error != null) errors.add(resp.error!);
       }
     }
 
-    AdSdkLogger.error("Failed to load ad - '$adName' with errors - $errors");
-    adSdkBannerAdListener?.onAdFailedToLoad(errors);
+    for (var adUnitId in secondaryIds) {
+      ad = ad.copyWith(adUnitId: adUnitId, adProvider: secondaryAdProvider);
+
+      if (secondaryAdProvider == AdProvider.admanager) {
+        final resp = await AdmanagerBannerAd.load(
+          adUnitId: adUnitId,
+          adSize: adConfig.size.admobSize,
+        );
+        if (resp.ad != null) {
+          AdSdkLogger.adLoadedLog(
+              adName: adConfig.adName, adProvider: secondaryAdProvider);
+          return onAdLoaded(ad.copyWith(ad: resp.ad));
+        }
+        if (resp.error != null) errors.add(resp.error!);
+      } else {
+        final resp = await AdmobBannerAd.load(
+          adUnitId: adUnitId,
+          adSize: adConfig.size.admobSize,
+        );
+        if (resp.ad != null) {
+          AdSdkLogger.adLoadedLog(
+              adName: adConfig.adName, adProvider: secondaryAdProvider);
+          return onAdLoaded(ad.copyWith(ad: resp.ad));
+        }
+        if (resp.error != null) errors.add(resp.error!);
+      }
+    }
+
+    AdSdkLogger.error(
+        "Failed to load ad - '${adConfig.adName}' with errors - $errors");
+    onAdFailedToLoad(errors);
   }
-}
-
-class AdSdkBannerAdListener {
-  final Function(List<String> errors) onAdFailedToLoad;
-  final Function(BannerAd ad) onAdmobAdLoaded;
-  final Function(AdManagerBannerAd ad) onAdmanagerAdLoaded;
-  final Function(MaxAd ad) onApplovinAdLoaded;
-
-  AdSdkBannerAdListener({
-    required this.onAdFailedToLoad,
-    required this.onAdmobAdLoaded,
-    required this.onAdmanagerAdLoaded,
-    required this.onApplovinAdLoaded,
-  });
 }
