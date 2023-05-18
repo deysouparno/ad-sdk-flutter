@@ -1,7 +1,5 @@
 import 'package:adsdk/adsdk.dart';
-import 'package:adsdk_example/models/ad_store.dart';
 import 'package:adsdk_example/utils/app_toast.dart';
-import 'package:applovin_max/applovin_max.dart';
 import 'package:flutter/material.dart';
 
 class AppOpenAdComponent extends StatefulWidget {
@@ -12,13 +10,13 @@ class AppOpenAdComponent extends StatefulWidget {
 }
 
 class _AppOpenAdComponentState extends State<AppOpenAdComponent> {
-  final Map<String, AdStore?> ads = {};
+  final Map<String, AdSdkAd?> ads = {};
 
-  void setAdLoaded(String adName, AdStore? adStore) {
-    if (adStore != null) {
+  void setAdLoaded(String adName, AdSdkAd? adSdkAd) {
+    if (adSdkAd != null) {
       AppToast.showToast(context, "$adName Loaded");
     }
-    setState(() => ads[adName] = adStore);
+    setState(() => ads[adName] = adSdkAd);
   }
 
   void loadAppOpenAd(String adName) {
@@ -26,45 +24,27 @@ class _AppOpenAdComponentState extends State<AppOpenAdComponent> {
 
     AdSdk.loadAd(
       adName: adName,
-      adSdkAppOpenAdListener: AdSdkAppOpenAdListener(
-        onAdFailedToLoad: (errors) {
-          AppToast.showToast(context, errors.first);
-        },
-        onAdmobAdLoaded: (ad) {
-          setAdLoaded(
-            adName,
-            AdStore(ad: ad, adProvider: AdProvider.admob),
-          );
-        },
-        onApplovinAdLoaded: (ad) => {
-          setAdLoaded(
-            adName,
-            AdStore(ad: ad, adProvider: AdProvider.applovin),
-          )
-        },
-      ),
+      onAdFailedToLoad: (errors) {
+        AppToast.showToast(context, errors.first);
+      },
+      onAdLoaded: (ad) {
+        setAdLoaded(adName, ad);
+      },
     );
   }
 
   void showAppOpenAd(String adName) {
-    switch (ads[adName]?.adProvider) {
-      case AdProvider.admob:
-        ads[adName]?.ad.show();
-        break;
-      case AdProvider.admanager:
-        ads[adName]?.ad.show();
-        break;
-      case AdProvider.applovin:
-        AppLovinMAX.showAppOpenAd(ads[adName]?.ad.adUnitId);
-        break;
-      default:
-    }
+    ads[adName]?.show(
+      onAdDismissedFullScreenContent: (ad) {},
+      onAdShowedFullScreenContent: (ad) {},
+    );
     setAdLoaded(adName, null);
   }
 
   @override
   Widget build(BuildContext context) {
     return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const Text(
           "AppOpen Ads",
@@ -87,7 +67,9 @@ class _AppOpenAdComponentState extends State<AppOpenAdComponent> {
                     },
                     child: Text(ads[adName] != null ? "Show" : "Load"),
                   ),
-                  title: Text(adName),
+                  title: Text(
+                      "Ad Provider: ${ads[adName]?.adProvider.key ?? "Not Loaded"}"),
+                  subtitle: Text(adName),
                 ),
               )
               .toList(),
