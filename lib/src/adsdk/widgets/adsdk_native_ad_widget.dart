@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:adsdk/adsdk.dart';
 import 'package:adsdk/src/adsdk_state.dart';
+import 'package:adsdk/src/internal/enums/ad_size.dart';
 import 'package:adsdk/src/internal/models/api_response.dart';
 import 'package:adsdk/src/internal/utils/adsdk_logger.dart';
 import 'package:flutter/material.dart';
@@ -23,6 +24,7 @@ class _AdSdkNativeAdWidgetState extends State<AdSdkNativeAdWidget> {
   bool adLoaded = false;
 
   late NativeAd ad;
+  NativeAd? newAd;
   Timer? _timer;
 
   @override
@@ -50,8 +52,23 @@ class _AdSdkNativeAdWidgetState extends State<AdSdkNativeAdWidget> {
           this.ad = ad.ad;
           adLoaded = true;
         });
+        loadAd();
         _timer = Timer.periodic(
-            Duration(milliseconds: config.refreshRateMs), (_) => loadAd());
+          Duration(milliseconds: config.refreshRateMs),
+          (_) {
+            if (newAd != null) {
+              setState(() => adLoaded = false);
+              Future.delayed(
+                Duration(seconds: AdSdkState.adSdkConfig.isTestMode ? 1 : 0),
+                () {
+                  setState(() => this.ad = newAd!);
+                  setState(() => adLoaded = true);
+                },
+              );
+            }
+            loadAd();
+          },
+        );
       },
     );
   }
@@ -64,18 +81,10 @@ class _AdSdkNativeAdWidgetState extends State<AdSdkNativeAdWidget> {
         AdSdkLogger.error(
           "Failed to load ad - '${config.adName}' with errors - $errors",
         );
-        setState(() => adLoaded = false);
       },
       onAdLoaded: (ad) {
-        AdSdkLogger.info("Here: ${ad.toString()}");
-        setState(() => adLoaded = false);
-        Future.delayed(
-          Duration(seconds: AdSdkState.adSdkConfig.isTestMode ? 1 : 0),
-          () => setState(() {
-            this.ad = ad.ad;
-            adLoaded = true;
-          }),
-        );
+        AdSdkLogger.info("New Ad Loaded: ${ad.toString()}");
+        setState(() => newAd = ad.ad);
       },
     );
   }
@@ -90,7 +99,7 @@ class _AdSdkNativeAdWidgetState extends State<AdSdkNativeAdWidget> {
   Widget build(BuildContext context) {
     if (!config.isActive || !adLoaded) return const SizedBox();
     return Container(
-      height: config.mediaHeight.toDouble(),
+      height: config.size.nativeAdHeight,
       decoration: BoxDecoration(
         color: Color(
           int.parse(

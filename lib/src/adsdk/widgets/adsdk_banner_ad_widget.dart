@@ -26,6 +26,8 @@ class _AdSdkBannerAdWidgetState extends State<AdSdkBannerAdWidget> {
 
   late AdSdkAd ad;
   late AdProvider adProvider;
+  AdSdkAd? newAd;
+  AdProvider? newAdProvider;
   Timer? _timer;
 
   @override
@@ -45,6 +47,7 @@ class _AdSdkBannerAdWidgetState extends State<AdSdkBannerAdWidget> {
       setState(() => adLoaded = true);
       return;
     }
+    loadAd();
     AdSdk.loadAd(
       adName: config.adName,
       onAdFailedToLoad: (errors) {
@@ -58,7 +61,20 @@ class _AdSdkBannerAdWidgetState extends State<AdSdkBannerAdWidget> {
         setState(() => adLoaded = true);
         _timer = Timer.periodic(
           Duration(milliseconds: config.refreshRateMs),
-          (_) => loadAd(),
+          (_) {
+            if (newAd != null) {
+              setState(() => adLoaded = false);
+              Future.delayed(
+                Duration(seconds: AdSdkState.adSdkConfig.isTestMode ? 1 : 0),
+                () {
+                  ad = newAd!;
+                  adProvider = newAdProvider!;
+                  setState(() => adLoaded = true);
+                },
+              );
+            }
+            loadAd();
+          },
         );
       },
     );
@@ -72,11 +88,8 @@ class _AdSdkBannerAdWidgetState extends State<AdSdkBannerAdWidget> {
         log(errors.toString());
       },
       onAdLoaded: (ad) {
-        this.ad = ad;
-        adProvider = AdProvider.admob;
-        setState(() => adLoaded = false);
-        Future.delayed(
-             Duration(seconds: AdSdkState.adSdkConfig.isTestMode ?  1 : 0), () => setState(() => adLoaded = true));
+        newAd = ad;
+        newAdProvider = AdProvider.admob;
       },
     );
   }

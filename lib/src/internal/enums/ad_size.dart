@@ -57,4 +57,13 @@ extension AdSdkAdSizeExtension on AdSdkAdSize {
         return "smallNativeAdView";
     }
   }
+
+  double get nativeAdHeight {
+    switch (this) {
+      case AdSdkAdSize.mediumNative:
+        return 270;
+      default:
+        return 110;
+    }
+  }
 }

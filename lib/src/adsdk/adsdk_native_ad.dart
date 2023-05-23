@@ -37,8 +37,8 @@ abstract class AdSdkNativeAd {
             ? AdSdkState.adSdkConfig.adManagerAdRequest
             : AdSdkState.adSdkConfig.adRequest,
         factoryId: adConfig.size.factoryId,
-        buttonColor: adConfig.colorHex,
-        textColor: adConfig.textColor,
+        buttonColor: isDarkMode ? adConfig.colorHexDark : adConfig.colorHex,
+        textColor: isDarkMode ? adConfig.textColorDark : adConfig.textColor,
       );
       if (resp.ad != null) {
         AdSdkLogger.adLoadedLog(

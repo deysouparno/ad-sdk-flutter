@@ -20,7 +20,7 @@ abstract class AdmobNativeAd {
       adUnitId: adUnitId,
       request: request,
       listener: NativeAdListener(
-        onAdLoaded: (ad) => c.complete(AdSdkRawAd(ad: ad as NativeAd)),
+        onAdLoaded: (ad) => c.complete(AdSdkRawAd(ad: ad)),
         onAdFailedToLoad: (_, error) =>
             c.complete(AdSdkRawAd(error: error.message)),
       ),

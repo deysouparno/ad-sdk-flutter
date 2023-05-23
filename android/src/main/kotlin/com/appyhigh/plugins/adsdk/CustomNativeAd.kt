@@ -18,9 +18,9 @@ internal class CustomNativeAd(private val context: Context) : NativeAdFactory {
     override fun createNativeAd(nativeAd: NativeAd, customOptions: Map<String, Any>?): NativeAdView {
         val adView = LayoutInflater.from(context).inflate(R.layout.native_ad_layout, null) as NativeAdView
 
-        // Set the media view.
+         // Set the media view.
         adView.mediaView =
-            adView.findViewById<View>(R.id.ad_media) as MediaView
+        adView.findViewById<View>(R.id.ad_media) as MediaView
 
         // Set other ad assets.
         adView.headlineView =
@@ -43,18 +43,15 @@ internal class CustomNativeAd(private val context: Context) : NativeAdFactory {
         // The headline and mediaContent are guaranteed to be in every NativeAd.
         (adView.headlineView as TextView?)!!.text = nativeAd.headline
         adView.mediaView!!.setMediaContent(nativeAd.mediaContent!!)
-        if(customOptions != null) {
-            (adView.headlineView as TextView?)!!.setTextColor(Color.parseColor((customOptions!!["textColor"] as String)))
-        }
-        
+        (adView.headlineView as TextView?)!!.setTextColor(Color.parseColor((customOptions!!["textColor"] as String)))
+
+
         if (nativeAd.callToAction == null) {
             adView.callToActionView!!.visibility = View.INVISIBLE
         } else {
             adView.callToActionView!!.visibility = View.VISIBLE
             (adView.callToActionView as Button?)!!.text = nativeAd.callToAction
-            if(customOptions != null) {
-                (adView.callToActionView as Button?)!!.backgroundTintList = ColorStateList.valueOf(Color.parseColor((customOptions!!["buttonColor"] as String)));
-            }
+            (adView.callToActionView as Button?)!!.backgroundTintList = ColorStateList.valueOf(Color.parseColor((customOptions!!["buttonColor"] as String)));
         }
         if (nativeAd.icon == null) {
             adView.iconView!!.visibility = View.GONE
@@ -69,12 +66,14 @@ internal class CustomNativeAd(private val context: Context) : NativeAdFactory {
         } else {
             adView.priceView!!.visibility = View.VISIBLE
             (adView.priceView as TextView?)!!.text = nativeAd.price
+            (adView.priceView as TextView?)!!.setTextColor(Color.parseColor((customOptions!!["textColor"] as String)))
         }
         if (nativeAd.store == null) {
             adView.storeView!!.visibility = View.INVISIBLE
         } else {
             adView.storeView!!.visibility = View.VISIBLE
             (adView.storeView as TextView?)!!.text = nativeAd.store
+            (adView.storeView as TextView?)!!.setTextColor(Color.parseColor((customOptions!!["textColor"] as String)))
         }
         if (nativeAd.starRating == null) {
             adView.starRatingView!!.visibility = View.INVISIBLE
@@ -87,6 +86,7 @@ internal class CustomNativeAd(private val context: Context) : NativeAdFactory {
         } else {
             adView.advertiserView!!.visibility = View.VISIBLE
             (adView.advertiserView as TextView?)!!.text = nativeAd.advertiser
+            (adView.advertiserView as TextView?)!!.setTextColor(Color.parseColor((customOptions!!["textColor"] as String)))
         }
 
         // This method tells the Google Mobile Ads SDK that you have finished populating your
