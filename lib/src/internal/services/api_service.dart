@@ -1,14 +1,12 @@
-import 'dart:developer';
-
 import 'package:adsdk/src/internal/constants/constants.dart';
 import 'package:adsdk/src/internal/constants/private_keys.dart';
-import 'package:adsdk/src/internal/models/api_response.dart';
+import 'package:adsdk/src/internal/services/local_storage_service.dart';
 import 'package:adsdk/src/internal/utils/adsdk_logger.dart';
 import 'package:adsdk/src/internal/utils/jwt_generator.dart';
 import 'package:http/http.dart' as http;
 
 abstract class ApiService {
-  static Future<AdSdkApiResponse?> fetchAds({
+  static Future<void> fetchAds({
     required String packageId,
     required String platform,
   }) async {
@@ -24,11 +22,9 @@ abstract class ApiService {
               "Bearer ${JwtGenerator.generateToken(PrivateKeys.jwtPrivateKey, userId: "test_user", api: "users")}"
         },
       );
-      log(resp.body);
-      return AdSdkApiResponse.fromJson(resp.body);
+      LocalStorage.setApiResponse(resp.body);
     } catch (e) {
       AdSdkLogger.error(e.toString());
     }
-    return null;
   }
 }

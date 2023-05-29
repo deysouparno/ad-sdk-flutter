@@ -7,12 +7,18 @@ import 'package:adsdk/src/internal/models/api_response.dart';
 import 'package:adsdk/src/internal/utils/adsdk_logger.dart';
 import 'package:flutter/material.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
+import 'package:shimmer/shimmer.dart';
 
 class AdSdkNativeAdWidget extends StatefulWidget {
-  const AdSdkNativeAdWidget(
-      {super.key, required this.adName, this.isDarkMode = false});
+  const AdSdkNativeAdWidget({
+    super.key,
+    required this.adName,
+    this.isDarkMode = false,
+    this.adSdkAd,
+  });
 
   final String adName;
+  final AdSdkAd? adSdkAd;
   final bool isDarkMode;
 
   @override
@@ -22,6 +28,7 @@ class AdSdkNativeAdWidget extends StatefulWidget {
 class _AdSdkNativeAdWidgetState extends State<AdSdkNativeAdWidget> {
   late final AdSdkAdConfig config;
   bool adLoaded = false;
+  bool configLoaded = false;
 
   late NativeAd ad;
   NativeAd? newAd;
@@ -30,47 +37,56 @@ class _AdSdkNativeAdWidgetState extends State<AdSdkNativeAdWidget> {
   @override
   void initState() {
     super.initState();
-    final ad = AdSdkState.ads[widget.adName];
-    if (ad == null) {
-      AdSdkLogger.error("Please provided correct adName.");
-      return;
-    }
-    config = ad;
-    AdSdk.loadAd(
-      adName: config.adName,
-      isDarkMode: widget.isDarkMode,
-      onAdFailedToLoad: (errors) {
-        AdSdkLogger.error(
-          "Failed to load ad - '${config.adName}' with errors - $errors",
-        );
-        setState(() => adLoaded = false);
-      },
-      onAdLoaded: (ad) {
-        AdSdkLogger.info("Here: ${ad.toString()}");
-        setState(() => adLoaded = false);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final ad = AdSdkState.ads[widget.adName];
+      if (ad == null) {
+        AdSdkLogger.error("Please provided correct adName.");
+        return;
+      }
+      config = ad;
+      setState(() => configLoaded = true);
+      if (widget.adSdkAd != null) {
         setState(() {
-          this.ad = ad.ad;
+          this.ad = widget.adSdkAd!.ad;
           adLoaded = true;
         });
-        loadAd();
-        _timer = Timer.periodic(
-          Duration(milliseconds: config.refreshRateMs),
-          (_) {
-            if (newAd != null) {
-              setState(() => adLoaded = false);
-              Future.delayed(
-                Duration(seconds: AdSdkState.adSdkConfig.isTestMode ? 1 : 0),
-                () {
-                  setState(() => this.ad = newAd!);
-                  setState(() => adLoaded = true);
-                },
-              );
-            }
-            loadAd();
-          },
-        );
-      },
-    );
+      }
+      AdSdk.loadAd(
+        adName: config.adName,
+        isDarkMode: widget.isDarkMode,
+        onAdFailedToLoad: (errors) {
+          AdSdkLogger.error(
+            "Failed to load ad - '${config.adName}' with errors - $errors",
+          );
+          setState(() => adLoaded = false);
+        },
+        onAdLoaded: (ad) {
+          AdSdkLogger.info("Here: ${ad.toString()}");
+          setState(() => adLoaded = false);
+          setState(() {
+            this.ad = ad.ad;
+            adLoaded = true;
+          });
+          loadAd();
+          _timer = Timer.periodic(
+            Duration(milliseconds: config.refreshRateMs),
+            (_) {
+              if (newAd != null) {
+                setState(() => adLoaded = false);
+                Future.delayed(
+                  Duration(seconds: AdSdkState.adSdkConfig.isTestMode ? 1 : 0),
+                  () {
+                    setState(() => this.ad = newAd!);
+                    setState(() => adLoaded = true);
+                  },
+                );
+              }
+              loadAd();
+            },
+          );
+        },
+      );
+    });
   }
 
   void loadAd() {
@@ -92,12 +108,27 @@ class _AdSdkNativeAdWidgetState extends State<AdSdkNativeAdWidget> {
   @override
   void dispose() {
     _timer?.cancel();
+    widget.adSdkAd?.dispose();
+    ad.dispose();
+    newAd?.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    if (!config.isActive || !adLoaded) return const SizedBox();
+    if (!configLoaded || !config.isActive) return const SizedBox();
+    if (!config.isActive || !adLoaded) {
+      return Shimmer.fromColors(
+        baseColor: Colors.grey.withOpacity(0.25),
+        highlightColor: Colors.grey.withOpacity(0.6),
+        period: const Duration(seconds: 1),
+        child: Container(
+          height: config.size.nativeAdHeight,
+          width: double.maxFinite,
+          decoration: const BoxDecoration(color: Colors.grey),
+        ),
+      );
+    }
     return Container(
       height: config.size.nativeAdHeight,
       decoration: BoxDecoration(

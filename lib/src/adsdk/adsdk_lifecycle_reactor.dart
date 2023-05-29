@@ -38,6 +38,7 @@ class AppLifecycleReactor {
     ad.show(
       onAdDismissedFullScreenContent: (ad) {},
       onAdShowedFullScreenContent: (ad) {},
+      onAdFailedToShowFullScreenContent: (ad, error) {},
     );
     _loadAppOpenAd();
   }

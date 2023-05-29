@@ -11,6 +11,7 @@ void main() async {
     bundleId: "com.appyhigh.plugins.adsdk_example",
     platform: "ANDROID",
     adSdkConfig: AdSdkConfiguration(isTestMode: true),
+    configPath: "",
     applovinSdkKey:
         "pA3NAGLWSFkdUbKoK9gLEDnpXe6x8XU6D2TgT5vsHlZXt4FATcoLWTvA3fHBVhG6hh7HJWJa6JD1akUlTlVgwx",
   );

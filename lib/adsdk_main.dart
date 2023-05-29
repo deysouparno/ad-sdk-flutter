@@ -10,6 +10,7 @@ import 'package:adsdk/src/internal/models/ad_sdk_ad.dart';
 import 'package:adsdk/src/internal/models/ad_sdk_configuration.dart';
 import 'package:adsdk/src/internal/models/api_response.dart';
 import 'package:adsdk/src/internal/services/api_service.dart';
+import 'package:adsdk/src/internal/services/local_storage_service.dart';
 import 'package:adsdk/src/internal/utils/adsdk_logger.dart';
 import 'package:applovin_max/applovin_max.dart';
 import 'package:flutter/services.dart';
@@ -22,15 +23,16 @@ abstract class AdSdk {
   static Future<void> initialize({
     required String bundleId,
     required String platform,
+    required String configPath,
     required AdSdkConfiguration adSdkConfig,
     String? applovinSdkKey,
   }) async {
+    await LocalStorage.init();
+
     AdSdkState.adSdkConfig = adSdkConfig;
 
-    final resp = await ApiService.fetchAds(
-      packageId: bundleId,
-      platform: platform,
-    );
+    final resp = await LocalStorage.getApiResponse(configPath);
+    ApiService.fetchAds(packageId: bundleId, platform: platform);
 
     if (resp == null) return;
     if (!resp.app.showAppAds) {
@@ -50,7 +52,7 @@ abstract class AdSdk {
 
     await MobileAds.instance.initialize();
     await const MethodChannel("adsdk").invokeMethod("registerNativeAds");
-    AdSdkLogger.debug("Google ads initialized.");
+    AdSdkLogger.info("Google ads initialized.");
 
     if (applovinSdkKey != null) {
       if (adSdkConfig.applovinTestDevices.isNotEmpty) {
@@ -60,7 +62,7 @@ abstract class AdSdk {
       }
       await AppLovinMAX.initialize(applovinSdkKey);
 
-      AdSdkLogger.debug("Applovin initialized.");
+      AdSdkLogger.info("Applovin initialized.");
     }
 
     AdSdkLogger.info("AdSdk initialized.");
@@ -89,7 +91,7 @@ abstract class AdSdk {
       return onAdFailedToLoad([AdSdkLogger.error("Ad '$adName' not active.")]);
     }
 
-    AdSdkLogger.debug("Loading ad - '$adName'");
+    AdSdkLogger.info("Loading ad - '$adName'");
     if (adConfig.adType == AdUnitType.interstitial) {
       AdSdkInterstitialAd.load(
         adConfig: adConfig,

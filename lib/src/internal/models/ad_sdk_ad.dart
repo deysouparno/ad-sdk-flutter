@@ -1,4 +1,3 @@
-// ignore_for_file: public_member_api_docs, sort_constructors_first
 import 'package:applovin_max/applovin_max.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 
@@ -39,16 +38,20 @@ class AdSdkAd {
   }
 
   void show({
-    required Function(AdSdkAd ad) onAdDismissedFullScreenContent,
-    required Function(AdSdkAd ad) onAdShowedFullScreenContent,
+    Function(AdSdkAd ad)? onAdDismissedFullScreenContent,
+    Function(AdSdkAd ad)? onAdShowedFullScreenContent,
+    Function(AdSdkAd ad, String error)? onAdFailedToShowFullScreenContent,
     Function(num amount, String type)? onUserEarnedReward,
   }) {
     if (adProvider == AdProvider.admob || adProvider == AdProvider.admanager) {
       if (adUnitType == AdUnitType.appOpen) {
         (ad as AppOpenAd).fullScreenContentCallback = FullScreenContentCallback(
           onAdDismissedFullScreenContent: (_) =>
-              onAdDismissedFullScreenContent(this),
-          onAdShowedFullScreenContent: (_) => onAdShowedFullScreenContent(this),
+              onAdDismissedFullScreenContent?.call(this),
+          onAdShowedFullScreenContent: (_) =>
+              onAdShowedFullScreenContent?.call(this),
+          onAdFailedToShowFullScreenContent: (ad, error) =>
+              onAdFailedToShowFullScreenContent?.call(this, error.message),
         );
         (ad as AppOpenAd).show();
       } else if (adUnitType == AdUnitType.interstitial) {
@@ -56,18 +59,22 @@ class AdSdkAd {
           (ad as InterstitialAd).fullScreenContentCallback =
               FullScreenContentCallback(
             onAdDismissedFullScreenContent: (_) =>
-                onAdDismissedFullScreenContent(this),
+                onAdDismissedFullScreenContent?.call(this),
             onAdShowedFullScreenContent: (_) =>
-                onAdShowedFullScreenContent(this),
+                onAdShowedFullScreenContent?.call(this),
+            onAdFailedToShowFullScreenContent: (ad, error) =>
+                onAdFailedToShowFullScreenContent?.call(this, error.message),
           );
           (ad as InterstitialAd).show();
         } else {
           (ad as AdManagerInterstitialAd).fullScreenContentCallback =
               FullScreenContentCallback(
             onAdDismissedFullScreenContent: (_) =>
-                onAdDismissedFullScreenContent(this),
+                onAdDismissedFullScreenContent?.call(this),
             onAdShowedFullScreenContent: (_) =>
-                onAdShowedFullScreenContent(this),
+                onAdShowedFullScreenContent?.call(this),
+            onAdFailedToShowFullScreenContent: (ad, error) =>
+                onAdFailedToShowFullScreenContent?.call(this, error.message),
           );
           (ad as AdManagerInterstitialAd).show();
         }
@@ -75,44 +82,48 @@ class AdSdkAd {
         (ad as RewardedAd).fullScreenContentCallback =
             FullScreenContentCallback(
           onAdDismissedFullScreenContent: (_) =>
-              onAdDismissedFullScreenContent(this),
-          onAdShowedFullScreenContent: (_) => onAdShowedFullScreenContent(this),
+              onAdDismissedFullScreenContent?.call(this),
+          onAdShowedFullScreenContent: (_) =>
+              onAdShowedFullScreenContent?.call(this),
+          onAdFailedToShowFullScreenContent: (ad, error) =>
+              onAdFailedToShowFullScreenContent?.call(this, error.message),
         );
-        (ad as RewardedAd).show(onUserEarnedReward: (ad, reward) {
-          if (onUserEarnedReward != null) {
-            onUserEarnedReward(reward.amount, reward.type);
-          }
-        });
+        (ad as RewardedAd).show(
+            onUserEarnedReward: (ad, reward) =>
+                onUserEarnedReward?.call(reward.amount, reward.type));
       }
     } else if (adProvider == AdProvider.applovin) {
       if (adUnitType == AdUnitType.appOpen) {
         AppLovinMAX.setAppOpenAdListener(AppOpenAdListener(
           onAdLoadedCallback: (_) => null,
           onAdLoadFailedCallback: (_, __) => null,
-          onAdDisplayedCallback: (_) => onAdShowedFullScreenContent(this),
-          onAdDisplayFailedCallback: (ad, error) {},
+          onAdDisplayedCallback: (_) => onAdShowedFullScreenContent?.call(this),
+          onAdDisplayFailedCallback: (ad, error) =>
+              onAdFailedToShowFullScreenContent?.call(this, error.message),
           onAdClickedCallback: (ad) {},
-          onAdHiddenCallback: (_) => onAdDismissedFullScreenContent(this),
+          onAdHiddenCallback: (_) => onAdDismissedFullScreenContent?.call(this),
         ));
         AppLovinMAX.showAppOpenAd(adUnitId);
       } else if (adUnitType == AdUnitType.interstitial) {
         AppLovinMAX.setInterstitialListener(InterstitialListener(
           onAdLoadedCallback: (_) => null,
           onAdLoadFailedCallback: (_, __) => null,
-          onAdDisplayedCallback: (_) => onAdShowedFullScreenContent(this),
-          onAdDisplayFailedCallback: (ad, error) {},
+          onAdDisplayedCallback: (_) => onAdShowedFullScreenContent?.call(this),
+          onAdDisplayFailedCallback: (ad, error) =>
+              onAdFailedToShowFullScreenContent?.call(this, error.message),
           onAdClickedCallback: (ad) {},
-          onAdHiddenCallback: (_) => onAdDismissedFullScreenContent(this),
+          onAdHiddenCallback: (_) => onAdDismissedFullScreenContent?.call(this),
         ));
         AppLovinMAX.showInterstitial(adUnitId);
       } else if (adUnitType == AdUnitType.rewarded) {
         AppLovinMAX.setRewardedAdListener(RewardedAdListener(
           onAdLoadedCallback: (_) => null,
           onAdLoadFailedCallback: (_, __) => null,
-          onAdDisplayedCallback: (_) => onAdShowedFullScreenContent(this),
-          onAdDisplayFailedCallback: (ad, error) {},
+          onAdDisplayedCallback: (_) => onAdShowedFullScreenContent?.call(this),
+          onAdDisplayFailedCallback: (ad, error) =>
+              onAdFailedToShowFullScreenContent?.call(this, error.message),
           onAdClickedCallback: (ad) {},
-          onAdHiddenCallback: (_) => onAdDismissedFullScreenContent(this),
+          onAdHiddenCallback: (_) => onAdDismissedFullScreenContent?.call(this),
           onAdReceivedRewardCallback: (ad, reward) {
             if (onUserEarnedReward != null) {
               onUserEarnedReward(reward.amount, reward.label);
@@ -121,6 +132,12 @@ class AdSdkAd {
         ));
         AppLovinMAX.showRewardedAd(adUnitId);
       }
+    }
+  }
+
+  void dispose() {
+    if (adProvider == AdProvider.admob || adProvider == AdProvider.admob) {
+      ad.dispose();
     }
   }
 }

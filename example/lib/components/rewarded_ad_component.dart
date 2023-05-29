@@ -37,6 +37,7 @@ class _RewardedAdComponentState extends State<RewardedAdComponent> {
     ads[adName]?.show(
       onAdDismissedFullScreenContent: (ad) {},
       onAdShowedFullScreenContent: (ad) {},
+      onUserEarnedReward: (amount, type) {},
     );
     setAdLoaded(adName, null);
   }
@@ -44,8 +45,7 @@ class _RewardedAdComponentState extends State<RewardedAdComponent> {
   @override
   Widget build(BuildContext context) {
     return Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const Text(
           "Rewarded Ads",
