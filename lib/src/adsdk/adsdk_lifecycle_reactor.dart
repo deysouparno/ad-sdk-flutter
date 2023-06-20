@@ -29,7 +29,7 @@ class AppLifecycleReactor {
     }
     if (appState == AppState.foreground &&
         DateTime.now().difference(start!).inSeconds >=
-            config.backgroundThreshold) {
+            Duration(milliseconds: config.backgroundThreshold).inSeconds) {
       showAppOpenAd();
     }
   }

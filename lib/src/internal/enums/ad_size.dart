@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:applovin_max/applovin_max.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 
@@ -61,9 +63,9 @@ extension AdSdkAdSizeExtension on AdSdkAdSize {
   double get nativeAdHeight {
     switch (this) {
       case AdSdkAdSize.mediumNative:
-        return 270;
+        return Platform.isAndroid ? 270 : 300;
       default:
-        return 110;
+        return Platform.isAndroid ? 110 : 80;
     }
   }
 }

@@ -50,43 +50,50 @@ class _AdSdkNativeAdWidgetState extends State<AdSdkNativeAdWidget> {
           this.ad = widget.adSdkAd!.ad;
           adLoaded = true;
         });
+        startAutoRefresh();
+      } else {
+        AdSdk.loadAd(
+          adName: config.adName,
+          isDarkMode: widget.isDarkMode,
+          onAdFailedToLoad: (errors) {
+            AdSdkLogger.error(
+              "Failed to load ad - '${config.adName}' with errors - $errors",
+            );
+            setState(() => adLoaded = false);
+          },
+          onAdLoaded: (ad) {
+            AdSdkLogger.info("Here: ${ad.toString()}");
+            setState(() => adLoaded = false);
+            setState(() {
+              this.ad = ad.ad;
+              adLoaded = true;
+            });
+            loadAd();
+            startAutoRefresh();
+          },
+        );
       }
-      AdSdk.loadAd(
-        adName: config.adName,
-        isDarkMode: widget.isDarkMode,
-        onAdFailedToLoad: (errors) {
-          AdSdkLogger.error(
-            "Failed to load ad - '${config.adName}' with errors - $errors",
-          );
+    });
+  }
+
+  void startAutoRefresh() {
+    AdSdkLogger.info("Starting auto refresh for ad: ${config.adName}");
+    _timer = Timer.periodic(
+      Duration(milliseconds: config.refreshRateMs),
+      (_) {
+        if (newAd != null) {
           setState(() => adLoaded = false);
-        },
-        onAdLoaded: (ad) {
-          AdSdkLogger.info("Here: ${ad.toString()}");
-          setState(() => adLoaded = false);
-          setState(() {
-            this.ad = ad.ad;
-            adLoaded = true;
-          });
-          loadAd();
-          _timer = Timer.periodic(
-            Duration(milliseconds: config.refreshRateMs),
-            (_) {
-              if (newAd != null) {
-                setState(() => adLoaded = false);
-                Future.delayed(
-                  Duration(seconds: AdSdkState.adSdkConfig.isTestMode ? 1 : 0),
-                  () {
-                    setState(() => this.ad = newAd!);
-                    setState(() => adLoaded = true);
-                  },
-                );
-              }
-              loadAd();
+          Future.delayed(
+            Duration(seconds: AdSdkState.adSdkConfig.isTestMode ? 1 : 0),
+            () {
+              setState(() => ad = newAd!);
+              setState(() => adLoaded = true);
             },
           );
-        },
-      );
-    });
+        }
+        loadAd();
+      },
+    );
   }
 
   void loadAd() {
@@ -139,7 +146,6 @@ class _AdSdkNativeAdWidgetState extends State<AdSdkNativeAdWidget> {
                 : config.bgColor.replaceFirst("#", "0xFF"),
           ),
         ),
-        border: Border.all(color: Colors.grey.shade300),
       ),
       child: AdWidget(ad: ad),
     );

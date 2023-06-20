@@ -52,41 +52,49 @@ class _AdSdkBannerAdWidgetState extends State<AdSdkBannerAdWidget> {
         setState(() => adLoaded = true);
         return;
       }
-      loadAd();
-      AdSdk.loadAd(
-        adName: config.adName,
-        onAdFailedToLoad: (errors) {
-          setState(() => adLoaded = false);
-          log(errors.toString());
-        },
-        onAdLoaded: (ad) {
-          this.ad = ad;
-          adProvider = AdProvider.admob;
-          setState(() => adLoaded = false);
-          setState(() => adLoaded = true);
-          _timer = Timer.periodic(
-            Duration(milliseconds: config.refreshRateMs),
-            (_) {
-              if (newAd != null) {
-                setState(() => adLoaded = false);
-                Future.delayed(
-                  Duration(seconds: AdSdkState.adSdkConfig.isTestMode ? 1 : 0),
-                  () {
-                    ad = newAd!;
-                    adProvider = newAdProvider!;
-                    setState(() => adLoaded = true);
-                  },
-                );
-              }
-              loadAd();
-            },
-          );
-        },
-      );
+      loadNewAd();
+      loadBannerAd();
     });
   }
 
-  void loadAd() {
+  void loadBannerAd() {
+    AdSdk.loadAd(
+      adName: config.adName,
+      onAdFailedToLoad: (errors) {
+        if (config.secondaryAdprovider == AdProvider.applovin) {
+          setState(() => adProvider = AdProvider.applovin);
+          setState(() => adLoaded = true);
+        } else {
+          setState(() => adLoaded = false);
+        }
+      },
+      onAdLoaded: (ad) {
+        this.ad = ad;
+        adProvider = AdProvider.admob;
+        setState(() => adLoaded = false);
+        setState(() => adLoaded = true);
+        _timer = Timer.periodic(
+          Duration(milliseconds: config.refreshRateMs),
+          (_) {
+            if (newAd != null) {
+              setState(() => adLoaded = false);
+              Future.delayed(
+                Duration(seconds: AdSdkState.adSdkConfig.isTestMode ? 1 : 0),
+                () {
+                  ad = newAd!;
+                  adProvider = newAdProvider!;
+                  setState(() => adLoaded = true);
+                },
+              );
+            }
+            loadNewAd();
+          },
+        );
+      },
+    );
+  }
+
+  void loadNewAd() {
     AdSdk.loadAd(
       adName: config.adName,
       onAdFailedToLoad: (errors) {
@@ -107,7 +115,9 @@ class _AdSdkBannerAdWidgetState extends State<AdSdkBannerAdWidget> {
       if (config.isActive) {
         if (adProvider == AdProvider.applovin) {
           if (config.size.applovinSize == AdFormat.banner) {
-            AppLovinMAX.destroyBanner(ad.adUnitId);
+            try {
+              AppLovinMAX.destroyBanner(ad.adUnitId);
+            } catch (_) {}
           } else if (config.size.applovinSize == AdFormat.mrec) {
             AppLovinMAX.destroyMRec(ad.adUnitId);
           }
@@ -122,7 +132,7 @@ class _AdSdkBannerAdWidgetState extends State<AdSdkBannerAdWidget> {
   @override
   Widget build(BuildContext context) {
     if (!configLoaded || !config.isActive) return const SizedBox();
-    if (!config.isActive || !adLoaded) {
+    if (!adLoaded) {
       return Shimmer.fromColors(
         baseColor: Colors.grey.withOpacity(0.25),
         highlightColor: Colors.grey.withOpacity(0.6),
@@ -136,7 +146,9 @@ class _AdSdkBannerAdWidgetState extends State<AdSdkBannerAdWidget> {
     }
     return adProvider == AdProvider.applovin
         ? MaxAdView(
-            adUnitId: config.primaryIds.first,
+            adUnitId: config.primaryAdprovider == AdProvider.applovin
+                ? config.primaryIds.first
+                : config.secondaryIds.first,
             adFormat: config.size.applovinSize,
             listener: AdViewAdListener(
               onAdLoadedCallback: (ad) {
@@ -151,7 +163,8 @@ class _AdSdkBannerAdWidgetState extends State<AdSdkBannerAdWidget> {
                 }
               },
               onAdLoadFailedCallback: (adUnitId, error) {
-                configLoaded = false;
+                setState(() => adLoaded = false);
+                loadBannerAd();
               },
               onAdClickedCallback: (ad) {},
               onAdExpandedCallback: (ad) {},
