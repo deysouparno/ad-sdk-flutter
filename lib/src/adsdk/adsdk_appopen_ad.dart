@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:adsdk/src/internal/enums/ad_provider.dart';
 import 'package:adsdk/src/internal/enums/ad_type.dart';
 import 'package:applovin_max/applovin_max.dart';
@@ -28,49 +30,59 @@ abstract class AdSdkAppOpenAd {
       adUnitType: AdUnitType.appOpen,
     );
 
-    for (var adUnitId in primaryIds) {
-      ad = ad.copyWith(adUnitId: adUnitId);
-      if (primaryAdProvider == AdProvider.applovin &&
-          (await AppLovinMAX.isInitialized() ?? false)) {
-        final resp = await ApplovinAppOpenAd.load(adUnitId);
-        if (resp.ad != null) {
-          AdSdkLogger.adLoadedLog(
-              adName: adConfig.adName, adProvider: primaryAdProvider);
-          return onAdLoaded(ad.copyWith(ad: resp.ad));
+    try {
+      for (var adUnitId in primaryIds) {
+        ad = ad.copyWith(adUnitId: adUnitId);
+        if (primaryAdProvider == AdProvider.applovin &&
+            (await AppLovinMAX.isInitialized() ?? false)) {
+          final resp = await ApplovinAppOpenAd.load(adUnitId)
+              .timeout(Duration(milliseconds: adConfig.primaryAdloadTimeoutMs));
+          if (resp.ad != null) {
+            AdSdkLogger.adLoadedLog(
+                adName: adConfig.adName, adProvider: primaryAdProvider);
+            return onAdLoaded(ad.copyWith(ad: resp.ad));
+          }
+          if (resp.error != null) errors.add(resp.error!);
+        } else {
+          final resp = await AdmobAppOpenAd.load(adUnitId)
+              .timeout(Duration(milliseconds: adConfig.primaryAdloadTimeoutMs));
+          if (resp.ad != null) {
+            AdSdkLogger.adLoadedLog(
+                adName: adConfig.adName, adProvider: primaryAdProvider);
+            return onAdLoaded(ad.copyWith(ad: resp.ad));
+          }
+          if (resp.error != null) errors.add(resp.error!);
         }
-        if (resp.error != null) errors.add(resp.error!);
-      } else {
-        final resp = await AdmobAppOpenAd.load(adUnitId);
-        if (resp.ad != null) {
-          AdSdkLogger.adLoadedLog(
-              adName: adConfig.adName, adProvider: primaryAdProvider);
-          return onAdLoaded(ad.copyWith(ad: resp.ad));
-        }
-        if (resp.error != null) errors.add(resp.error!);
       }
-    }
 
-    for (var adUnitId in secondaryIds) {
-      ad = ad.copyWith(adUnitId: adUnitId, adProvider: secondaryAdProvider);
+      for (var adUnitId in secondaryIds) {
+        ad = ad.copyWith(adUnitId: adUnitId, adProvider: secondaryAdProvider);
 
-      if (secondaryAdProvider == AdProvider.applovin &&
-          (await AppLovinMAX.isInitialized() ?? false)) {
-        final resp = await ApplovinAppOpenAd.load(adUnitId);
-        if (resp.ad != null) {
-          AdSdkLogger.adLoadedLog(
-              adName: adConfig.adName, adProvider: secondaryAdProvider);
-          return onAdLoaded(ad.copyWith(ad: resp.ad));
+        if (secondaryAdProvider == AdProvider.applovin &&
+            (await AppLovinMAX.isInitialized() ?? false)) {
+          final resp = await ApplovinAppOpenAd.load(adUnitId)
+              .timeout(Duration(milliseconds: adConfig.primaryAdloadTimeoutMs));
+          if (resp.ad != null) {
+            AdSdkLogger.adLoadedLog(
+                adName: adConfig.adName, adProvider: secondaryAdProvider);
+            return onAdLoaded(ad.copyWith(ad: resp.ad));
+          }
+          if (resp.error != null) errors.add(resp.error!);
+        } else {
+          final resp = await AdmobAppOpenAd.load(adUnitId)
+              .timeout(Duration(milliseconds: adConfig.primaryAdloadTimeoutMs));
+          if (resp.ad != null) {
+            AdSdkLogger.adLoadedLog(
+                adName: adConfig.adName, adProvider: secondaryAdProvider);
+            return onAdLoaded(ad.copyWith(ad: resp.ad));
+          }
+          if (resp.error != null) errors.add(resp.error!);
         }
-        if (resp.error != null) errors.add(resp.error!);
-      } else {
-        final resp = await AdmobAppOpenAd.load(adUnitId);
-        if (resp.ad != null) {
-          AdSdkLogger.adLoadedLog(
-              adName: adConfig.adName, adProvider: secondaryAdProvider);
-          return onAdLoaded(ad.copyWith(ad: resp.ad));
-        }
-        if (resp.error != null) errors.add(resp.error!);
       }
+    } on TimeoutException catch (e) {
+      errors.add("TimeoutException: ${e.message}");
+    } catch (e) {
+      errors.add("Exception: ${e.toString()}");
     }
 
     AdSdkLogger.error(

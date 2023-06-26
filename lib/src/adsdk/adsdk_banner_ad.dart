@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:adsdk/src/internal/enums/ad_provider.dart';
 import 'package:adsdk/src/internal/enums/ad_type.dart';
 import 'package:adsdk/src/internal/enums/ad_size.dart';
@@ -27,60 +29,66 @@ abstract class AdSdkBannerAd {
       adUnitType: AdUnitType.banner,
     );
 
-    for (var adUnitId in primaryIds) {
-      ad = ad.copyWith(adUnitId: adUnitId);
+    try {
+      for (var adUnitId in primaryIds) {
+        ad = ad.copyWith(adUnitId: adUnitId);
 
-      if (primaryAdProvider == AdProvider.admanager) {
-        final resp = await AdmanagerBannerAd.load(
-          adUnitId: adUnitId,
-          adSize: adConfig.size.admobSize,
-        );
-        if (resp.ad != null) {
-          AdSdkLogger.adLoadedLog(
-              adName: adConfig.adName, adProvider: primaryAdProvider);
-          return onAdLoaded(ad.copyWith(ad: resp.ad));
+        if (primaryAdProvider == AdProvider.admanager) {
+          final resp = await AdmanagerBannerAd.load(
+            adUnitId: adUnitId,
+            adSize: adConfig.size.admobSize,
+          ).timeout(Duration(milliseconds: adConfig.primaryAdloadTimeoutMs));
+          if (resp.ad != null) {
+            AdSdkLogger.adLoadedLog(
+                adName: adConfig.adName, adProvider: primaryAdProvider);
+            return onAdLoaded(ad.copyWith(ad: resp.ad));
+          }
+          if (resp.error != null) errors.add(resp.error!);
+        } else {
+          final resp = await AdmobBannerAd.load(
+            adUnitId: adUnitId,
+            adSize: adConfig.size.admobSize,
+          ).timeout(Duration(milliseconds: adConfig.primaryAdloadTimeoutMs));
+          if (resp.ad != null) {
+            AdSdkLogger.adLoadedLog(
+                adName: adConfig.adName, adProvider: primaryAdProvider);
+            return onAdLoaded(ad.copyWith(ad: resp.ad));
+          }
+          if (resp.error != null) errors.add(resp.error!);
         }
-        if (resp.error != null) errors.add(resp.error!);
-      } else {
-        final resp = await AdmobBannerAd.load(
-          adUnitId: adUnitId,
-          adSize: adConfig.size.admobSize,
-        );
-        if (resp.ad != null) {
-          AdSdkLogger.adLoadedLog(
-              adName: adConfig.adName, adProvider: primaryAdProvider);
-          return onAdLoaded(ad.copyWith(ad: resp.ad));
-        }
-        if (resp.error != null) errors.add(resp.error!);
       }
-    }
 
-    for (var adUnitId in secondaryIds) {
-      ad = ad.copyWith(adUnitId: adUnitId, adProvider: secondaryAdProvider);
+      for (var adUnitId in secondaryIds) {
+        ad = ad.copyWith(adUnitId: adUnitId, adProvider: secondaryAdProvider);
 
-      if (secondaryAdProvider == AdProvider.admanager) {
-        final resp = await AdmanagerBannerAd.load(
-          adUnitId: adUnitId,
-          adSize: adConfig.size.admobSize,
-        );
-        if (resp.ad != null) {
-          AdSdkLogger.adLoadedLog(
-              adName: adConfig.adName, adProvider: secondaryAdProvider);
-          return onAdLoaded(ad.copyWith(ad: resp.ad));
+        if (secondaryAdProvider == AdProvider.admanager) {
+          final resp = await AdmanagerBannerAd.load(
+            adUnitId: adUnitId,
+            adSize: adConfig.size.admobSize,
+          );
+          if (resp.ad != null) {
+            AdSdkLogger.adLoadedLog(
+                adName: adConfig.adName, adProvider: secondaryAdProvider);
+            return onAdLoaded(ad.copyWith(ad: resp.ad));
+          }
+          if (resp.error != null) errors.add(resp.error!);
+        } else {
+          final resp = await AdmobBannerAd.load(
+            adUnitId: adUnitId,
+            adSize: adConfig.size.admobSize,
+          );
+          if (resp.ad != null) {
+            AdSdkLogger.adLoadedLog(
+                adName: adConfig.adName, adProvider: secondaryAdProvider);
+            return onAdLoaded(ad.copyWith(ad: resp.ad));
+          }
+          if (resp.error != null) errors.add(resp.error!);
         }
-        if (resp.error != null) errors.add(resp.error!);
-      } else {
-        final resp = await AdmobBannerAd.load(
-          adUnitId: adUnitId,
-          adSize: adConfig.size.admobSize,
-        );
-        if (resp.ad != null) {
-          AdSdkLogger.adLoadedLog(
-              adName: adConfig.adName, adProvider: secondaryAdProvider);
-          return onAdLoaded(ad.copyWith(ad: resp.ad));
-        }
-        if (resp.error != null) errors.add(resp.error!);
       }
+    } on TimeoutException catch (e) {
+      errors.add("TimeoutException: ${e.message}");
+    } catch (e) {
+      errors.add("Exception: ${e.toString()}");
     }
 
     AdSdkLogger.error(

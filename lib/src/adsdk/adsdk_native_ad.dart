@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:adsdk/src/internal/enums/ad_provider.dart';
 import 'package:adsdk/src/internal/enums/ad_type.dart';
 import 'package:adsdk/src/internal/enums/ad_size.dart';
@@ -28,42 +30,48 @@ abstract class AdSdkNativeAd {
       adUnitType: AdUnitType.native,
     );
 
-    for (var adUnitId in primaryIds) {
-      ad = ad.copyWith(adUnitId: adUnitId);
+    try {
+      for (var adUnitId in primaryIds) {
+        ad = ad.copyWith(adUnitId: adUnitId);
 
-      final resp = await AdmobNativeAd.load(
-        adUnitId: adUnitId,
-        request: primaryAdProvider == AdProvider.admanager
-            ? AdSdkState.adSdkConfig.adManagerAdRequest
-            : AdSdkState.adSdkConfig.adRequest,
-        factoryId: adConfig.size.factoryId,
-        buttonColor: isDarkMode ? adConfig.colorHexDark : adConfig.colorHex,
-        textColor: isDarkMode ? adConfig.textColorDark : adConfig.textColor,
-      );
-      if (resp.ad != null) {
-        AdSdkLogger.adLoadedLog(
-            adName: adConfig.adName, adProvider: primaryAdProvider);
-        return onAdLoaded(ad.copyWith(ad: resp.ad));
+        final resp = await AdmobNativeAd.load(
+          adUnitId: adUnitId,
+          request: primaryAdProvider == AdProvider.admanager
+              ? AdSdkState.adSdkConfig.adManagerAdRequest
+              : AdSdkState.adSdkConfig.adRequest,
+          factoryId: adConfig.size.factoryId,
+          buttonColor: isDarkMode ? adConfig.colorHexDark : adConfig.colorHex,
+          textColor: isDarkMode ? adConfig.textColorDark : adConfig.textColor,
+        ).timeout(Duration(milliseconds: adConfig.primaryAdloadTimeoutMs));
+        if (resp.ad != null) {
+          AdSdkLogger.adLoadedLog(
+              adName: adConfig.adName, adProvider: primaryAdProvider);
+          return onAdLoaded(ad.copyWith(ad: resp.ad));
+        }
+        if (resp.error != null) errors.add(resp.error!);
       }
-      if (resp.error != null) errors.add(resp.error!);
-    }
 
-    for (var adUnitId in secondaryIds) {
-      final resp = await AdmobNativeAd.load(
-        adUnitId: adUnitId,
-        request: secondaryAdProvider == AdProvider.admanager
-            ? AdSdkState.adSdkConfig.adManagerAdRequest
-            : AdSdkState.adSdkConfig.adRequest,
-        factoryId: adConfig.size.factoryId,
-        buttonColor: isDarkMode ? adConfig.colorHexDark : adConfig.colorHex,
-        textColor: isDarkMode ? adConfig.textColorDark : adConfig.textColor,
-      );
-      if (resp.ad != null) {
-        AdSdkLogger.adLoadedLog(
-            adName: adConfig.adName, adProvider: secondaryAdProvider);
-        return onAdLoaded(ad.copyWith(ad: resp.ad));
+      for (var adUnitId in secondaryIds) {
+        final resp = await AdmobNativeAd.load(
+          adUnitId: adUnitId,
+          request: secondaryAdProvider == AdProvider.admanager
+              ? AdSdkState.adSdkConfig.adManagerAdRequest
+              : AdSdkState.adSdkConfig.adRequest,
+          factoryId: adConfig.size.factoryId,
+          buttonColor: isDarkMode ? adConfig.colorHexDark : adConfig.colorHex,
+          textColor: isDarkMode ? adConfig.textColorDark : adConfig.textColor,
+        ).timeout(Duration(milliseconds: adConfig.primaryAdloadTimeoutMs));
+        if (resp.ad != null) {
+          AdSdkLogger.adLoadedLog(
+              adName: adConfig.adName, adProvider: secondaryAdProvider);
+          return onAdLoaded(ad.copyWith(ad: resp.ad));
+        }
+        if (resp.error != null) errors.add(resp.error!);
       }
-      if (resp.error != null) errors.add(resp.error!);
+    } on TimeoutException catch (e) {
+      errors.add("TimeoutException: ${e.message}");
+    } catch (e) {
+      errors.add("Exception: ${e.toString()}");
     }
 
     AdSdkLogger.error(

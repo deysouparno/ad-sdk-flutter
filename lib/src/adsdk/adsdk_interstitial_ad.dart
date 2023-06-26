@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:applovin_max/applovin_max.dart';
 
 import 'package:adsdk/src/internal/enums/ad_provider.dart';
@@ -29,64 +31,76 @@ abstract class AdSdkInterstitialAd {
       adUnitType: AdUnitType.interstitial,
     );
 
-    for (var adUnitId in primaryIds) {
-      ad = ad.copyWith(adUnitId: adUnitId);
-      if (primaryAdProvider == AdProvider.admanager) {
-        final resp = await AdmanagerInterstitialAd.load(adUnitId);
-        if (resp.ad != null) {
-          AdSdkLogger.adLoadedLog(
-              adName: adConfig.adName, adProvider: primaryAdProvider);
-          return onAdLoaded(ad.copyWith(ad: resp.ad));
+    try {
+      for (var adUnitId in primaryIds) {
+        ad = ad.copyWith(adUnitId: adUnitId);
+        if (primaryAdProvider == AdProvider.admanager) {
+          final resp = await AdmanagerInterstitialAd.load(adUnitId)
+              .timeout(Duration(milliseconds: adConfig.primaryAdloadTimeoutMs));
+          if (resp.ad != null) {
+            AdSdkLogger.adLoadedLog(
+                adName: adConfig.adName, adProvider: primaryAdProvider);
+            return onAdLoaded(ad.copyWith(ad: resp.ad));
+          }
+          if (resp.error != null) errors.add(resp.error!);
+        } else if (primaryAdProvider == AdProvider.applovin &&
+            (await AppLovinMAX.isInitialized() ?? false)) {
+          final resp = await ApplovinInterstitialAd.load(adUnitId)
+              .timeout(Duration(milliseconds: adConfig.primaryAdloadTimeoutMs));
+          if (resp.ad != null) {
+            AdSdkLogger.adLoadedLog(
+                adName: adConfig.adName, adProvider: primaryAdProvider);
+            return onAdLoaded(ad.copyWith(ad: resp.ad));
+          }
+          if (resp.error != null) errors.add(resp.error!);
+        } else {
+          final resp = await AdmobInterstitialAd.load(adUnitId)
+              .timeout(Duration(milliseconds: adConfig.primaryAdloadTimeoutMs));
+          if (resp.ad != null) {
+            AdSdkLogger.adLoadedLog(
+                adName: adConfig.adName, adProvider: primaryAdProvider);
+            return onAdLoaded(ad.copyWith(ad: resp.ad));
+          }
+          if (resp.error != null) errors.add(resp.error!);
         }
-        if (resp.error != null) errors.add(resp.error!);
-      } else if (primaryAdProvider == AdProvider.applovin &&
-          (await AppLovinMAX.isInitialized() ?? false)) {
-        final resp = await ApplovinInterstitialAd.load(adUnitId);
-        if (resp.ad != null) {
-          AdSdkLogger.adLoadedLog(
-              adName: adConfig.adName, adProvider: primaryAdProvider);
-          return onAdLoaded(ad.copyWith(ad: resp.ad));
-        }
-        if (resp.error != null) errors.add(resp.error!);
-      } else {
-        final resp = await AdmobInterstitialAd.load(adUnitId);
-        if (resp.ad != null) {
-          AdSdkLogger.adLoadedLog(
-              adName: adConfig.adName, adProvider: primaryAdProvider);
-          return onAdLoaded(ad.copyWith(ad: resp.ad));
-        }
-        if (resp.error != null) errors.add(resp.error!);
       }
-    }
 
-    for (var adUnitId in secondaryIds) {
-      ad = ad.copyWith(adUnitId: adUnitId, adProvider: secondaryAdProvider);
-      if (secondaryAdProvider == AdProvider.admanager) {
-        final resp = await AdmanagerInterstitialAd.load(adUnitId);
-        if (resp.ad != null) {
-          AdSdkLogger.adLoadedLog(
-              adName: adConfig.adName, adProvider: secondaryAdProvider);
-          return onAdLoaded(ad.copyWith(ad: resp.ad));
+      for (var adUnitId in secondaryIds) {
+        ad = ad.copyWith(adUnitId: adUnitId, adProvider: secondaryAdProvider);
+        if (secondaryAdProvider == AdProvider.admanager) {
+          final resp = await AdmanagerInterstitialAd.load(adUnitId)
+              .timeout(Duration(milliseconds: adConfig.primaryAdloadTimeoutMs));
+          if (resp.ad != null) {
+            AdSdkLogger.adLoadedLog(
+                adName: adConfig.adName, adProvider: secondaryAdProvider);
+            return onAdLoaded(ad.copyWith(ad: resp.ad));
+          }
+          if (resp.error != null) errors.add(resp.error!);
+        } else if (secondaryAdProvider == AdProvider.applovin &&
+            (await AppLovinMAX.isInitialized() ?? false)) {
+          final resp = await ApplovinInterstitialAd.load(adUnitId)
+              .timeout(Duration(milliseconds: adConfig.primaryAdloadTimeoutMs));
+          if (resp.ad != null) {
+            AdSdkLogger.adLoadedLog(
+                adName: adConfig.adName, adProvider: secondaryAdProvider);
+            return onAdLoaded(ad.copyWith(ad: resp.ad));
+          }
+          if (resp.error != null) errors.add(resp.error!);
+        } else {
+          final resp = await AdmobInterstitialAd.load(adUnitId)
+              .timeout(Duration(milliseconds: adConfig.primaryAdloadTimeoutMs));
+          if (resp.ad != null) {
+            AdSdkLogger.adLoadedLog(
+                adName: adConfig.adName, adProvider: secondaryAdProvider);
+            return onAdLoaded(ad.copyWith(ad: resp.ad));
+          }
+          if (resp.error != null) errors.add(resp.error!);
         }
-        if (resp.error != null) errors.add(resp.error!);
-      } else if (secondaryAdProvider == AdProvider.applovin &&
-          (await AppLovinMAX.isInitialized() ?? false)) {
-        final resp = await ApplovinInterstitialAd.load(adUnitId);
-        if (resp.ad != null) {
-          AdSdkLogger.adLoadedLog(
-              adName: adConfig.adName, adProvider: secondaryAdProvider);
-          return onAdLoaded(ad.copyWith(ad: resp.ad));
-        }
-        if (resp.error != null) errors.add(resp.error!);
-      } else {
-        final resp = await AdmobInterstitialAd.load(adUnitId);
-        if (resp.ad != null) {
-          AdSdkLogger.adLoadedLog(
-              adName: adConfig.adName, adProvider: secondaryAdProvider);
-          return onAdLoaded(ad.copyWith(ad: resp.ad));
-        }
-        if (resp.error != null) errors.add(resp.error!);
       }
+    } on TimeoutException catch (e) {
+      errors.add("TimeoutException: ${e.message}");
+    } catch (e) {
+      errors.add("Exception: ${e.toString()}");
     }
 
     AdSdkLogger.error(
