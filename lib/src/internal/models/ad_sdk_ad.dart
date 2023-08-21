@@ -54,6 +54,19 @@ class AdSdkAd {
               onAdFailedToShowFullScreenContent?.call(this, error.message),
         );
         (ad as AppOpenAd).show();
+      } else if (adUnitType == AdUnitType.rewardInterstitial) {
+        (ad as RewardedInterstitialAd).fullScreenContentCallback =
+            FullScreenContentCallback(
+          onAdDismissedFullScreenContent: (_) =>
+              onAdDismissedFullScreenContent?.call(this),
+          onAdShowedFullScreenContent: (_) =>
+              onAdShowedFullScreenContent?.call(this),
+          onAdFailedToShowFullScreenContent: (ad, error) =>
+              onAdFailedToShowFullScreenContent?.call(this, error.message),
+        );
+        (ad as RewardedInterstitialAd).show(
+            onUserEarnedReward: (ad, reward) =>
+                onUserEarnedReward?.call(reward.amount, reward.type));
       } else if (adUnitType == AdUnitType.interstitial) {
         if (adProvider == AdProvider.admob) {
           (ad as InterstitialAd).fullScreenContentCallback =
@@ -115,7 +128,8 @@ class AdSdkAd {
           onAdHiddenCallback: (_) => onAdDismissedFullScreenContent?.call(this),
         ));
         AppLovinMAX.showInterstitial(adUnitId);
-      } else if (adUnitType == AdUnitType.rewarded) {
+      } else if (adUnitType == AdUnitType.rewarded ||
+          adUnitType == AdUnitType.rewardInterstitial) {
         AppLovinMAX.setRewardedAdListener(RewardedAdListener(
           onAdLoadedCallback: (_) => null,
           onAdLoadFailedCallback: (_, __) => null,

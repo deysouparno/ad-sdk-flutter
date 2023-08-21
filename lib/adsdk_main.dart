@@ -4,6 +4,7 @@ import 'package:adsdk/src/adsdk/adsdk_interstitial_ad.dart';
 import 'package:adsdk/src/adsdk/adsdk_lifecycle_reactor.dart';
 import 'package:adsdk/src/adsdk/adsdk_native_ad.dart';
 import 'package:adsdk/src/adsdk/adsdk_rewarded_ad.dart';
+import 'package:adsdk/src/adsdk/adsdk_rewarded_interstitial_ad.dart';
 import 'package:adsdk/src/adsdk_state.dart';
 import 'package:adsdk/src/internal/enums/ad_type.dart';
 import 'package:adsdk/src/internal/models/ad_sdk_ad.dart';
@@ -120,6 +121,12 @@ abstract class AdSdk {
       AdSdkNativeAd.load(
         adConfig: adConfig,
         isDarkMode: isDarkMode,
+        onAdFailedToLoad: onAdFailedToLoad,
+        onAdLoaded: onAdLoaded,
+      );
+    } else if (adConfig.adType == AdUnitType.rewardInterstitial) {
+      AdSdkRewardedInterstitialAd.load(
+        adConfig: adConfig,
         onAdFailedToLoad: onAdFailedToLoad,
         onAdLoaded: onAdLoaded,
       );
