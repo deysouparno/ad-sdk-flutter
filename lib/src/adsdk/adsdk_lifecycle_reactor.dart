@@ -21,6 +21,10 @@ class AppLifecycleReactor {
         .forEach((state) => _onAppStateChanged(state));
   }
 
+  void removeAppStateListener() {
+    AppStateEventNotifier.stopListening();
+  }
+
   DateTime? start;
 
   void _onAppStateChanged(AppState appState) {

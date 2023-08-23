@@ -6,12 +6,12 @@ class BannerAdComponent extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.all(8.0),
+    return const Padding(
+      padding: EdgeInsets.all(8.0),
       child: SizedBox.expand(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.center,
-          children: const [
+          children: [
             SizedBox(height: 16),
             Text("admob_banner"),
             AdSdkBannerAdWidget(adName: "admob_banner"),

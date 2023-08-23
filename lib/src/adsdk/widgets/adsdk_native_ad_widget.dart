@@ -124,7 +124,7 @@ class _AdSdkNativeAdWidgetState extends State<AdSdkNativeAdWidget> {
   @override
   Widget build(BuildContext context) {
     if (!configLoaded || !config.isActive) return const SizedBox();
-    if (!config.isActive || !adLoaded) {
+    if (!adLoaded) {
       return Shimmer.fromColors(
         baseColor: Colors.grey.withOpacity(0.25),
         highlightColor: Colors.grey.withOpacity(0.6),
