@@ -26,11 +26,10 @@ class AdSdkNativeAdWidget extends StatefulWidget {
 }
 
 class _AdSdkNativeAdWidgetState extends State<AdSdkNativeAdWidget> {
-  late final AdSdkAdConfig config;
+  AdSdkAdConfig? config;
   bool adLoaded = false;
-  bool configLoaded = false;
 
-  late NativeAd ad;
+  NativeAd? ad;
   NativeAd? newAd;
   Timer? _timer;
 
@@ -43,8 +42,7 @@ class _AdSdkNativeAdWidgetState extends State<AdSdkNativeAdWidget> {
         AdSdkLogger.error("Please provided correct adName.");
         return;
       }
-      config = ad;
-      setState(() => configLoaded = true);
+      setState(() => config = ad);
       if (widget.adSdkAd != null) {
         setState(() {
           this.ad = widget.adSdkAd!.ad;
@@ -52,34 +50,37 @@ class _AdSdkNativeAdWidgetState extends State<AdSdkNativeAdWidget> {
         });
         startAutoRefresh();
       } else {
-        AdSdk.loadAd(
-          adName: config.adName,
-          isDarkMode: widget.isDarkMode,
-          onAdFailedToLoad: (errors) {
-            AdSdkLogger.error(
-              "Failed to load ad - '${config.adName}' with errors - $errors",
-            );
-            setState(() => adLoaded = false);
-          },
-          onAdLoaded: (ad) {
-            AdSdkLogger.info("Here: ${ad.toString()}");
-            setState(() => adLoaded = false);
-            setState(() {
-              this.ad = ad.ad;
-              adLoaded = true;
-            });
-            loadAd();
-            startAutoRefresh();
-          },
-        );
+        if (config == null) {
+          AdSdk.loadAd(
+            adName: config!.adName,
+            isDarkMode: widget.isDarkMode,
+            onAdFailedToLoad: (errors) {
+              AdSdkLogger.error(
+                "Failed to load ad - '${config!.adName}' with errors - $errors",
+              );
+              setState(() => adLoaded = false);
+            },
+            onAdLoaded: (ad) {
+              AdSdkLogger.info("Here: ${ad.toString()}");
+              setState(() => adLoaded = false);
+              setState(() {
+                this.ad = ad.ad;
+                adLoaded = true;
+              });
+              loadAd();
+              startAutoRefresh();
+            },
+          );
+        }
       }
     });
   }
 
   void startAutoRefresh() {
-    AdSdkLogger.info("Starting auto refresh for ad: ${config.adName}");
+    if (config == null) return;
+    AdSdkLogger.info("Starting auto refresh for ad: ${config!.adName}");
     _timer = Timer.periodic(
-      Duration(milliseconds: config.refreshRateMs),
+      Duration(milliseconds: config!.refreshRateMs),
       (_) {
         if (newAd != null) {
           setState(() => adLoaded = false);
@@ -97,12 +98,13 @@ class _AdSdkNativeAdWidgetState extends State<AdSdkNativeAdWidget> {
   }
 
   void loadAd() {
+    if (config == null) return;
     AdSdk.loadAd(
-      adName: config.adName,
+      adName: config!.adName,
       isDarkMode: widget.isDarkMode,
       onAdFailedToLoad: (errors) {
         AdSdkLogger.error(
-          "Failed to load ad - '${config.adName}' with errors - $errors",
+          "Failed to load ad - '${config!.adName}' with errors - $errors",
         );
       },
       onAdLoaded: (ad) {
@@ -116,38 +118,39 @@ class _AdSdkNativeAdWidgetState extends State<AdSdkNativeAdWidget> {
   void dispose() {
     _timer?.cancel();
     widget.adSdkAd?.dispose();
-    ad.dispose();
+    ad?.dispose();
     newAd?.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    if (!configLoaded || !config.isActive) return const SizedBox();
+    if (config == null || ad == null) return const SizedBox();
+    if (!config!.isActive) return const SizedBox();
     if (!adLoaded) {
       return Shimmer.fromColors(
         baseColor: Colors.grey.withOpacity(0.25),
         highlightColor: Colors.grey.withOpacity(0.6),
         period: const Duration(seconds: 1),
         child: Container(
-          height: config.size.nativeAdHeight,
+          height: config!.size.nativeAdHeight,
           width: double.maxFinite,
           decoration: const BoxDecoration(color: Colors.grey),
         ),
       );
     }
     return Container(
-      height: config.size.nativeAdHeight,
+      height: config!.size.nativeAdHeight,
       decoration: BoxDecoration(
         color: Color(
           int.parse(
             widget.isDarkMode
-                ? config.bgColorDark.replaceFirst("#", "0xFF")
-                : config.bgColor.replaceFirst("#", "0xFF"),
+                ? config!.bgColorDark.replaceFirst("#", "0xFF")
+                : config!.bgColor.replaceFirst("#", "0xFF"),
           ),
         ),
       ),
-      child: AdWidget(ad: ad),
+      child: AdWidget(ad: ad!),
     );
   }
 }

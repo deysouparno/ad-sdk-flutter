@@ -8,8 +8,8 @@ import 'package:adsdk/src/internal/models/api_response.dart';
 class AppLifecycleReactor {
   final AdSdkAdConfig config;
 
-  late AdSdkAd ad;
-  late AdProvider adProvider;
+   AdSdkAd? ad;
+   AdProvider? adProvider;
 
   AppLifecycleReactor({required this.config});
 
@@ -39,7 +39,7 @@ class AppLifecycleReactor {
   }
 
   void showAppOpenAd() {
-    ad.show(
+    ad?.show(
       onAdDismissedFullScreenContent: (ad) {},
       onAdShowedFullScreenContent: (ad) {},
       onAdFailedToShowFullScreenContent: (ad, error) {},
