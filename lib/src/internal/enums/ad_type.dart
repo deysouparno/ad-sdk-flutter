@@ -1,6 +1,7 @@
 enum AdUnitType {
   appOpen("appopen"),
   interstitial("interstitial"),
+  rewardInterstitial("rewardInterstitial"),
   rewarded("rewarded"),
   banner("banner"),
   native("native");
@@ -20,6 +21,9 @@ extension AdUnitTypeStringExtension on String {
       return AdUnitType.banner;
     } else if (toLowerCase() == AdUnitType.native.key.toLowerCase()) {
       return AdUnitType.native;
+    } else if (toLowerCase() ==
+        AdUnitType.rewardInterstitial.key.toLowerCase()) {
+      return AdUnitType.rewardInterstitial;
     }
     return AdUnitType.interstitial;
   }
