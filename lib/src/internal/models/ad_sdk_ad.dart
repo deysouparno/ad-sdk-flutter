@@ -1,3 +1,5 @@
+import 'package:adsdk/src/adsdk_state.dart';
+import 'package:adsdk/src/internal/utils/adsdk_logger.dart';
 import 'package:applovin_max/applovin_max.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 
@@ -43,26 +45,45 @@ class AdSdkAd {
     Function(AdSdkAd ad, String error)? onAdFailedToShowFullScreenContent,
     Function(num amount, String type)? onUserEarnedReward,
   }) {
+    if (AdSdkState.showingAd) {
+      onAdFailedToShowFullScreenContent?.call(
+        this,
+        AdSdkLogger.error("Another ad is already showing."),
+      );
+      return;
+    }
     if (adProvider == AdProvider.admob || adProvider == AdProvider.admanager) {
       if (adUnitType == AdUnitType.appOpen) {
         (ad as AppOpenAd).fullScreenContentCallback = FullScreenContentCallback(
-          onAdDismissedFullScreenContent: (_) =>
-              onAdDismissedFullScreenContent?.call(this),
-          onAdShowedFullScreenContent: (_) =>
-              onAdShowedFullScreenContent?.call(this),
-          onAdFailedToShowFullScreenContent: (ad, error) =>
-              onAdFailedToShowFullScreenContent?.call(this, error.message),
+          onAdDismissedFullScreenContent: (_) {
+            AdSdkState.showingAd = false;
+            onAdDismissedFullScreenContent?.call(this);
+          },
+          onAdShowedFullScreenContent: (_) {
+            AdSdkState.showingAd = true;
+            onAdShowedFullScreenContent?.call(this);
+          },
+          onAdFailedToShowFullScreenContent: (ad, error) {
+            AdSdkState.showingAd = false;
+            onAdFailedToShowFullScreenContent?.call(this, error.message);
+          },
         );
         (ad as AppOpenAd).show();
       } else if (adUnitType == AdUnitType.rewardInterstitial) {
         (ad as RewardedInterstitialAd).fullScreenContentCallback =
             FullScreenContentCallback(
-          onAdDismissedFullScreenContent: (_) =>
-              onAdDismissedFullScreenContent?.call(this),
-          onAdShowedFullScreenContent: (_) =>
-              onAdShowedFullScreenContent?.call(this),
-          onAdFailedToShowFullScreenContent: (ad, error) =>
-              onAdFailedToShowFullScreenContent?.call(this, error.message),
+          onAdDismissedFullScreenContent: (_) {
+            AdSdkState.showingAd = false;
+            onAdDismissedFullScreenContent?.call(this);
+          },
+          onAdShowedFullScreenContent: (_) {
+            AdSdkState.showingAd = true;
+            onAdShowedFullScreenContent?.call(this);
+          },
+          onAdFailedToShowFullScreenContent: (ad, error) {
+            AdSdkState.showingAd = false;
+            onAdFailedToShowFullScreenContent?.call(this, error.message);
+          },
         );
         (ad as RewardedInterstitialAd).show(
             onUserEarnedReward: (ad, reward) =>
@@ -71,73 +92,118 @@ class AdSdkAd {
         if (adProvider == AdProvider.admob) {
           (ad as InterstitialAd).fullScreenContentCallback =
               FullScreenContentCallback(
-            onAdDismissedFullScreenContent: (_) =>
-                onAdDismissedFullScreenContent?.call(this),
-            onAdShowedFullScreenContent: (_) =>
-                onAdShowedFullScreenContent?.call(this),
-            onAdFailedToShowFullScreenContent: (ad, error) =>
-                onAdFailedToShowFullScreenContent?.call(this, error.message),
+            onAdDismissedFullScreenContent: (_) {
+              AdSdkState.showingAd = false;
+              onAdDismissedFullScreenContent?.call(this);
+            },
+            onAdShowedFullScreenContent: (_) {
+              AdSdkState.showingAd = true;
+              onAdShowedFullScreenContent?.call(this);
+            },
+            onAdFailedToShowFullScreenContent: (ad, error) {
+              AdSdkState.showingAd = false;
+              onAdFailedToShowFullScreenContent?.call(this, error.message);
+            },
           );
           (ad as InterstitialAd).show();
         } else {
           (ad as AdManagerInterstitialAd).fullScreenContentCallback =
               FullScreenContentCallback(
-            onAdDismissedFullScreenContent: (_) =>
-                onAdDismissedFullScreenContent?.call(this),
-            onAdShowedFullScreenContent: (_) =>
-                onAdShowedFullScreenContent?.call(this),
-            onAdFailedToShowFullScreenContent: (ad, error) =>
-                onAdFailedToShowFullScreenContent?.call(this, error.message),
+            onAdDismissedFullScreenContent: (_) {
+              AdSdkState.showingAd = false;
+              onAdDismissedFullScreenContent?.call(this);
+            },
+            onAdShowedFullScreenContent: (_) {
+              AdSdkState.showingAd = true;
+              onAdShowedFullScreenContent?.call(this);
+            },
+            onAdFailedToShowFullScreenContent: (ad, error) {
+              AdSdkState.showingAd = false;
+              onAdFailedToShowFullScreenContent?.call(this, error.message);
+            },
           );
           (ad as AdManagerInterstitialAd).show();
         }
       } else if (adUnitType == AdUnitType.rewarded) {
         (ad as RewardedAd).fullScreenContentCallback =
             FullScreenContentCallback(
-          onAdDismissedFullScreenContent: (_) =>
-              onAdDismissedFullScreenContent?.call(this),
-          onAdShowedFullScreenContent: (_) =>
-              onAdShowedFullScreenContent?.call(this),
-          onAdFailedToShowFullScreenContent: (ad, error) =>
-              onAdFailedToShowFullScreenContent?.call(this, error.message),
+          onAdDismissedFullScreenContent: (_) {
+            AdSdkState.showingAd = false;
+            onAdDismissedFullScreenContent?.call(this);
+          },
+          onAdShowedFullScreenContent: (_) {
+            AdSdkState.showingAd = true;
+            onAdShowedFullScreenContent?.call(this);
+          },
+          onAdFailedToShowFullScreenContent: (ad, error) {
+            AdSdkState.showingAd = false;
+            onAdFailedToShowFullScreenContent?.call(this, error.message);
+          },
         );
         (ad as RewardedAd).show(
-            onUserEarnedReward: (ad, reward) =>
-                onUserEarnedReward?.call(reward.amount, reward.type));
+          onUserEarnedReward: (ad, reward) =>
+              onUserEarnedReward?.call(reward.amount, reward.type),
+        );
       }
     } else if (adProvider == AdProvider.applovin) {
       if (adUnitType == AdUnitType.appOpen) {
         AppLovinMAX.setAppOpenAdListener(AppOpenAdListener(
           onAdLoadedCallback: (_) => null,
           onAdLoadFailedCallback: (_, __) => null,
-          onAdDisplayedCallback: (_) => onAdShowedFullScreenContent?.call(this),
-          onAdDisplayFailedCallback: (ad, error) =>
-              onAdFailedToShowFullScreenContent?.call(this, error.message),
+          onAdDisplayedCallback: (_) {
+            AdSdkState.showingAd = true;
+            onAdShowedFullScreenContent?.call(this);
+          },
+          onAdDisplayFailedCallback: (ad, error) {
+            AdSdkState.showingAd = false;
+            onAdFailedToShowFullScreenContent?.call(this, error.message);
+          },
           onAdClickedCallback: (ad) {},
-          onAdHiddenCallback: (_) => onAdDismissedFullScreenContent?.call(this),
+          onAdHiddenCallback: (_) {
+            AdSdkState.showingAd = false;
+            onAdDismissedFullScreenContent?.call(this);
+          },
         ));
         AppLovinMAX.showAppOpenAd(adUnitId);
       } else if (adUnitType == AdUnitType.interstitial) {
-        AppLovinMAX.setInterstitialListener(InterstitialListener(
-          onAdLoadedCallback: (_) => null,
-          onAdLoadFailedCallback: (_, __) => null,
-          onAdDisplayedCallback: (_) => onAdShowedFullScreenContent?.call(this),
-          onAdDisplayFailedCallback: (ad, error) =>
-              onAdFailedToShowFullScreenContent?.call(this, error.message),
-          onAdClickedCallback: (ad) {},
-          onAdHiddenCallback: (_) => onAdDismissedFullScreenContent?.call(this),
-        ));
+        AppLovinMAX.setInterstitialListener(
+          InterstitialListener(
+            onAdLoadedCallback: (_) => null,
+            onAdLoadFailedCallback: (_, __) => null,
+            onAdDisplayedCallback: (_) {
+              AdSdkState.showingAd = true;
+              onAdShowedFullScreenContent?.call(this);
+            },
+            onAdDisplayFailedCallback: (ad, error) {
+              AdSdkState.showingAd = false;
+              onAdFailedToShowFullScreenContent?.call(this, error.message);
+            },
+            onAdClickedCallback: (ad) {},
+            onAdHiddenCallback: (_) {
+              AdSdkState.showingAd = false;
+              onAdDismissedFullScreenContent?.call(this);
+            },
+          ),
+        );
         AppLovinMAX.showInterstitial(adUnitId);
       } else if (adUnitType == AdUnitType.rewarded ||
           adUnitType == AdUnitType.rewardInterstitial) {
         AppLovinMAX.setRewardedAdListener(RewardedAdListener(
           onAdLoadedCallback: (_) => null,
           onAdLoadFailedCallback: (_, __) => null,
-          onAdDisplayedCallback: (_) => onAdShowedFullScreenContent?.call(this),
-          onAdDisplayFailedCallback: (ad, error) =>
-              onAdFailedToShowFullScreenContent?.call(this, error.message),
+          onAdDisplayedCallback: (_) {
+            AdSdkState.showingAd = true;
+            onAdShowedFullScreenContent?.call(this);
+          },
+          onAdDisplayFailedCallback: (ad, error) {
+            AdSdkState.showingAd = false;
+            onAdFailedToShowFullScreenContent?.call(this, error.message);
+          },
           onAdClickedCallback: (ad) {},
-          onAdHiddenCallback: (_) => onAdDismissedFullScreenContent?.call(this),
+          onAdHiddenCallback: (_) {
+            AdSdkState.showingAd = false;
+            onAdDismissedFullScreenContent?.call(this);
+          },
           onAdReceivedRewardCallback: (ad, reward) {
             if (onUserEarnedReward != null) {
               onUserEarnedReward(reward.amount, reward.label);

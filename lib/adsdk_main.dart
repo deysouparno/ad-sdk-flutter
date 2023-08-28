@@ -20,6 +20,7 @@ import 'package:google_mobile_ads/google_mobile_ads.dart';
 abstract class AdSdk {
   static bool _isInitialized = false;
   static bool get isInitialized => _isInitialized;
+  static AppLifecycleReactor? appLifecycleReactor;
 
   static Future<void> initialize({
     required String bundleId,
@@ -137,6 +138,12 @@ abstract class AdSdk {
     final config = AdSdkState.ads[adName];
     if (config == null) return;
     AdSdkLogger.info("Setting up AppOpenLifecycleReactor for ad $adName");
-    AppLifecycleReactor(config: config).listenToAppStateChanges();
+    appLifecycleReactor = AppLifecycleReactor(config: config);
+    appLifecycleReactor!.listenToAppStateChanges();
+  }
+
+  static void removeAppOpenLifecycleReactor() {
+    AdSdkLogger.info("Removing AppOpenLifecycleReactor");
+    appLifecycleReactor?.removeAppStateListener();
   }
 }
