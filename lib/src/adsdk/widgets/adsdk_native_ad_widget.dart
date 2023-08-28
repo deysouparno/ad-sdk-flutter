@@ -86,7 +86,7 @@ class _AdSdkNativeAdWidgetState extends State<AdSdkNativeAdWidget> {
         if (newAd != null) {
           setState(() => adLoaded = false);
           Future.delayed(
-            Duration(seconds: AdSdkState.adSdkConfig.isTestMode ? 1 : 0),
+            const Duration(seconds: 1),
             () {
               setState(() => ad = newAd!);
               setState(() => adLoaded = true);
