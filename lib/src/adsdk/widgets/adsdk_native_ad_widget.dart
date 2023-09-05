@@ -79,13 +79,14 @@ class _AdSdkNativeAdWidgetState extends State<AdSdkNativeAdWidget> {
   void startAutoRefresh() {
     if (config == null) return;
     AdSdkLogger.info("Starting auto refresh for ad: ${config!.adName}");
+    loadAd();
     _timer = Timer.periodic(
       Duration(milliseconds: config!.refreshRateMs),
       (_) {
         if (newAd != null) {
           setState(() => adLoaded = false);
           Future.delayed(
-            Duration(seconds: AdSdkState.adSdkConfig.isTestMode ? 1 : 0),
+            const Duration(seconds: 1),
             () {
               setState(() => ad = newAd!);
               setState(() => adLoaded = true);

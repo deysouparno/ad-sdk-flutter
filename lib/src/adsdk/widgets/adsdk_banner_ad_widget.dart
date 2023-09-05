@@ -72,13 +72,14 @@ class _AdSdkBannerAdWidgetState extends State<AdSdkBannerAdWidget> {
         adProvider = AdProvider.admob;
         setState(() => adLoaded = false);
         setState(() => adLoaded = true);
+        loadNewAd();
         _timer = Timer.periodic(
           Duration(milliseconds: config!.refreshRateMs),
           (_) {
             if (newAd != null) {
               setState(() => adLoaded = false);
               Future.delayed(
-                Duration(seconds: AdSdkState.adSdkConfig.isTestMode ? 1 : 0),
+                const Duration(seconds: 1),
                 () {
                   ad = newAd!;
                   adProvider = newAdProvider!;
