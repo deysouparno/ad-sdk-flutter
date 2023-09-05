@@ -8,8 +8,8 @@ import 'package:adsdk/src/internal/models/api_response.dart';
 class AppLifecycleReactor {
   final AdSdkAdConfig config;
 
-  late AdSdkAd ad;
-  late AdProvider adProvider;
+   AdSdkAd? ad;
+   AdProvider? adProvider;
 
   AppLifecycleReactor({required this.config});
 
@@ -19,6 +19,10 @@ class AppLifecycleReactor {
     AppStateEventNotifier.startListening();
     AppStateEventNotifier.appStateStream
         .forEach((state) => _onAppStateChanged(state));
+  }
+
+  void removeAppStateListener() {
+    AppStateEventNotifier.stopListening();
   }
 
   DateTime? start;
@@ -35,7 +39,7 @@ class AppLifecycleReactor {
   }
 
   void showAppOpenAd() {
-    ad.show(
+    ad?.show(
       onAdDismissedFullScreenContent: (ad) {},
       onAdShowedFullScreenContent: (ad) {},
       onAdFailedToShowFullScreenContent: (ad, error) {},

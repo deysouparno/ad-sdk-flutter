@@ -4,6 +4,7 @@ import 'package:adsdk/src/adsdk/adsdk_interstitial_ad.dart';
 import 'package:adsdk/src/adsdk/adsdk_lifecycle_reactor.dart';
 import 'package:adsdk/src/adsdk/adsdk_native_ad.dart';
 import 'package:adsdk/src/adsdk/adsdk_rewarded_ad.dart';
+import 'package:adsdk/src/adsdk/adsdk_rewarded_interstitial_ad.dart';
 import 'package:adsdk/src/adsdk_state.dart';
 import 'package:adsdk/src/internal/enums/ad_type.dart';
 import 'package:adsdk/src/internal/models/ad_sdk_ad.dart';
@@ -19,6 +20,7 @@ import 'package:google_mobile_ads/google_mobile_ads.dart';
 abstract class AdSdk {
   static bool _isInitialized = false;
   static bool get isInitialized => _isInitialized;
+  static AppLifecycleReactor? appLifecycleReactor;
 
   static Future<void> initialize({
     required String bundleId,
@@ -123,6 +125,12 @@ abstract class AdSdk {
         onAdFailedToLoad: onAdFailedToLoad,
         onAdLoaded: onAdLoaded,
       );
+    } else if (adConfig.adType == AdUnitType.rewardInterstitial) {
+      AdSdkRewardedInterstitialAd.load(
+        adConfig: adConfig,
+        onAdFailedToLoad: onAdFailedToLoad,
+        onAdLoaded: onAdLoaded,
+      );
     }
   }
 
@@ -130,6 +138,12 @@ abstract class AdSdk {
     final config = AdSdkState.ads[adName];
     if (config == null) return;
     AdSdkLogger.info("Setting up AppOpenLifecycleReactor for ad $adName");
-    AppLifecycleReactor(config: config).listenToAppStateChanges();
+    appLifecycleReactor = AppLifecycleReactor(config: config);
+    appLifecycleReactor!.listenToAppStateChanges();
+  }
+
+  static void removeAppOpenLifecycleReactor() {
+    AdSdkLogger.info("Removing AppOpenLifecycleReactor");
+    appLifecycleReactor?.removeAppStateListener();
   }
 }

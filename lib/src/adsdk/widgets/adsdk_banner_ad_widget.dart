@@ -23,12 +23,11 @@ class AdSdkBannerAdWidget extends StatefulWidget {
 }
 
 class _AdSdkBannerAdWidgetState extends State<AdSdkBannerAdWidget> {
-  late final AdSdkAdConfig config;
-  bool configLoaded = false;
+  AdSdkAdConfig? config;
   bool adLoaded = false;
 
-  late AdSdkAd ad;
-  late AdProvider adProvider;
+  AdSdkAd? ad;
+  AdProvider? adProvider;
   AdSdkAd? newAd;
   AdProvider? newAdProvider;
   Timer? _timer;
@@ -42,12 +41,11 @@ class _AdSdkBannerAdWidgetState extends State<AdSdkBannerAdWidget> {
         AdSdkLogger.error("Please provided correct adName.");
         return;
       }
-      config = ad;
-      setState(() => configLoaded = true);
+      setState(() => config = ad);
       AdSdkLogger.info(
-        "Ad size of '${config.adName} - (${config.size.admobSize.height}, ${config.size.admobSize.width})'",
+        "Ad size of '${config?.adName} - (${config?.size.admobSize.height}, ${config?.size.admobSize.width})'",
       );
-      if (config.primaryAdprovider == AdProvider.applovin) {
+      if (config?.primaryAdprovider == AdProvider.applovin) {
         adProvider = AdProvider.applovin;
         setState(() => adLoaded = true);
         return;
@@ -58,10 +56,11 @@ class _AdSdkBannerAdWidgetState extends State<AdSdkBannerAdWidget> {
   }
 
   void loadBannerAd() {
+    if (config == null) return;
     AdSdk.loadAd(
-      adName: config.adName,
+      adName: config!.adName,
       onAdFailedToLoad: (errors) {
-        if (config.secondaryAdprovider == AdProvider.applovin) {
+        if (config!.secondaryAdprovider == AdProvider.applovin) {
           setState(() => adProvider = AdProvider.applovin);
           setState(() => adLoaded = true);
         } else {
@@ -73,13 +72,14 @@ class _AdSdkBannerAdWidgetState extends State<AdSdkBannerAdWidget> {
         adProvider = AdProvider.admob;
         setState(() => adLoaded = false);
         setState(() => adLoaded = true);
+        loadNewAd();
         _timer = Timer.periodic(
-          Duration(milliseconds: config.refreshRateMs),
+          Duration(milliseconds: config!.refreshRateMs),
           (_) {
             if (newAd != null) {
               setState(() => adLoaded = false);
               Future.delayed(
-                Duration(seconds: AdSdkState.adSdkConfig.isTestMode ? 1 : 0),
+                const Duration(seconds: 1),
                 () {
                   ad = newAd!;
                   adProvider = newAdProvider!;
@@ -95,8 +95,9 @@ class _AdSdkBannerAdWidgetState extends State<AdSdkBannerAdWidget> {
   }
 
   void loadNewAd() {
+    if (config == null) return;
     AdSdk.loadAd(
-      adName: config.adName,
+      adName: config!.adName,
       onAdFailedToLoad: (errors) {
         setState(() => adLoaded = false);
         log(errors.toString());
@@ -111,18 +112,20 @@ class _AdSdkBannerAdWidgetState extends State<AdSdkBannerAdWidget> {
   @override
   void dispose() {
     _timer?.cancel();
-    if (configLoaded) {
-      if (config.isActive) {
+    if (config != null) {
+      if (config?.isActive ?? false) {
         if (adProvider == AdProvider.applovin) {
-          if (config.size.applovinSize == AdFormat.banner) {
+          if (config?.size.applovinSize == AdFormat.banner) {
             try {
-              AppLovinMAX.destroyBanner(ad.adUnitId);
+              if (ad != null) {
+                AppLovinMAX.destroyBanner(ad!.adUnitId);
+              }
             } catch (_) {}
-          } else if (config.size.applovinSize == AdFormat.mrec) {
-            AppLovinMAX.destroyMRec(ad.adUnitId);
+          } else if (config?.size.applovinSize == AdFormat.mrec && ad != null) {
+            AppLovinMAX.destroyMRec(ad!.adUnitId);
           }
         } else {
-          ad.dispose();
+          ad?.dispose();
         }
       }
     }
@@ -131,33 +134,35 @@ class _AdSdkBannerAdWidgetState extends State<AdSdkBannerAdWidget> {
 
   @override
   Widget build(BuildContext context) {
-    if (!configLoaded || !config.isActive) return const SizedBox();
+    if (config == null) return const SizedBox();
+    if (!config!.isActive) return const SizedBox();
     if (!adLoaded) {
       return Shimmer.fromColors(
         baseColor: Colors.grey.withOpacity(0.25),
         highlightColor: Colors.grey.withOpacity(0.6),
         period: const Duration(seconds: 1),
         child: Container(
-          height: config.size.admobSize.height.toDouble(),
-          width: config.size.admobSize.width.toDouble(),
+          height: config!.size.admobSize.height.toDouble(),
+          width: config!.size.admobSize.width.toDouble(),
           decoration: const BoxDecoration(color: Colors.grey),
         ),
       );
     }
     return adProvider == AdProvider.applovin
         ? MaxAdView(
-            adUnitId: config.primaryAdprovider == AdProvider.applovin
-                ? config.primaryIds.first
-                : config.secondaryIds.first,
-            adFormat: config.size.applovinSize,
+            adUnitId: config?.primaryAdprovider == AdProvider.applovin
+                ? config!.primaryIds.first
+                : config!.secondaryIds.first,
+            adFormat: config!.size.applovinSize,
             listener: AdViewAdListener(
               onAdLoadedCallback: (ad) {
-                if (ad.adUnitId == config.primaryIds.first) {
+                if (ad.adUnitId == config!.primaryIds.first ||
+                    adProvider != null) {
                   this.ad = AdSdkAd(
                     ad: ad,
-                    adName: config.adName,
+                    adName: config!.adName,
                     adUnitId: ad.adUnitId,
-                    adProvider: adProvider,
+                    adProvider: adProvider!,
                     adUnitType: AdUnitType.banner,
                   );
                 }
@@ -172,9 +177,9 @@ class _AdSdkBannerAdWidgetState extends State<AdSdkBannerAdWidget> {
             ),
           )
         : SizedBox(
-            height: config.size.admobSize.height.toDouble(),
-            width: config.size.admobSize.width.toDouble(),
-            child: AdWidget(ad: ad.ad),
+            height: config!.size.admobSize.height.toDouble(),
+            width: config!.size.admobSize.width.toDouble(),
+            child: AdWidget(ad: ad?.ad),
           );
   }
 }

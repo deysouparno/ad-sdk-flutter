@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'package:adsdk/src/internal/constants/constants.dart';
 import 'package:adsdk/src/internal/constants/private_keys.dart';
 import 'package:adsdk/src/internal/services/local_storage_service.dart';
@@ -11,7 +12,7 @@ abstract class ApiService {
     required String platform,
   }) async {
     try {
-      final resp = await http.post(
+      final response = await http.post(
         Uri.parse("${AdSdkConstants.baseUrl}${AdSdkConstants.endpoint}"),
         body: {
           "packageId": packageId,
@@ -22,9 +23,16 @@ abstract class ApiService {
               "Bearer ${JwtGenerator.generateToken(PrivateKeys.jwtPrivateKey, userId: "test_user", api: "users")}"
         },
       );
-      LocalStorage.setApiResponse(resp.body);
+      var jsonResponse = jsonDecode(response.body);
+      AdSdkLogger.info(jsonResponse.toString());
+      if (response.statusCode == 200) {
+        LocalStorage.setApiResponse(jsonEncode(jsonResponse));
+      } else {
+        throw Exception('Bad Response');
+      }
     } catch (e) {
       AdSdkLogger.error(e.toString());
+      throw Exception(e.toString());
     }
   }
 }
