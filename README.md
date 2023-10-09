@@ -86,6 +86,32 @@ AdSdk.initialize(
     applovinSdkKey: "YOUR_SDK_KEY",
 );
 ```
+## EU Consent (GDPR)
+
+Requests showing of a native Consent Form for user.
+Form consists of Consent Message and buttons:
+[Consent], [Do not consent]
+
+If [isTestMode] equals `true`
+then you need to specify [testIdentifier].
+You can find it in logs.
+
+Function returns `true` if
+Consent Form loaded (but not required to be shown)
+ConsentStatuses for `true`:
+`REQUIRED`, `OBTAINED` or `NOT_REQUIRED`.
+
+Returns `false` because of
+error during loading of Consent Form.
+Error will occurs if in test mode you are not specified [testDeviceId]
+
+  
+```dart
+final result = await AdSdk.getConsentForEU(
+    isTestMode: false,
+    testIdentifier: '<DEVICE_ID>',
+)
+```
 
 ## Load Ads
 
