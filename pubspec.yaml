@@ -1,6 +1,6 @@
 name: adsdk
 description: AdSdk is a wrapper around famous ad packages which let you integrate ads easily.
-version: 1.0.0
+version: 1.1.0
 homepage: https://github.com/Appyhigh/ad-sdk-flutter.git
 repository: https://github.com/Appyhigh/ad-sdk-flutter.git
 
