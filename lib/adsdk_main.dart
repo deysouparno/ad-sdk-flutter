@@ -13,12 +13,14 @@ import 'package:adsdk/src/internal/models/api_response.dart';
 import 'package:adsdk/src/internal/services/api_service.dart';
 import 'package:adsdk/src/internal/services/local_storage_service.dart';
 import 'package:adsdk/src/internal/utils/adsdk_logger.dart';
+import 'package:adsdk/src/internal/widgets/hardstop_dialog.dart';
 import 'package:applovin_max/applovin_max.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:gdpr_dialog/gdpr_dialog.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 
-abstract class AdSdk {
+class AdSdk {
   static bool _isInitialized = false;
   static bool get isInitialized => _isInitialized;
   static AppLifecycleReactor? appLifecycleReactor;
@@ -29,6 +31,7 @@ abstract class AdSdk {
     required String configPath,
     required AdSdkConfiguration adSdkConfig,
     String? applovinSdkKey,
+    Function(bool)? isHardStopEnabled,
   }) async {
     await LocalStorage.init();
 
@@ -38,19 +41,26 @@ abstract class AdSdk {
     ApiService.fetchAds(packageId: bundleId, platform: platform);
 
     if (resp == null) return;
+
+    isHardStopEnabled?.call(resp.app.enablePopup);
+
     if (!resp.app.showAppAds) {
       AdSdkLogger.error("Ads disabled from backend.");
       return;
     }
+
+    AdSdkState.apiResp = resp;
 
     for (AdSdkAdConfig ad in resp.app.ads) {
       AdSdkState.ads[ad.adName] = ad;
     }
 
     if (adSdkConfig.googleAdsTestDevices.isNotEmpty) {
-      await MobileAds.instance.updateRequestConfiguration(RequestConfiguration(
-        testDeviceIds: AdSdkState.adSdkConfig.googleAdsTestDevices,
-      ));
+      await MobileAds.instance.updateRequestConfiguration(
+        RequestConfiguration(
+          testDeviceIds: AdSdkState.adSdkConfig.googleAdsTestDevices,
+        ),
+      );
     }
 
     await MobileAds.instance.initialize();
@@ -155,5 +165,11 @@ abstract class AdSdk {
       GdprDialog.instance.showDialog(
         isForTest: isTestMode,
         testDeviceId: testIdentifier,
+      );
+
+  static void showHardStopDialog(BuildContext context) => showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (context) => const HardstopDialog(),
       );
 }
