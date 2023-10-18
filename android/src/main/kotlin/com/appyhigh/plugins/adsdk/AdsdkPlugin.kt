@@ -32,6 +32,9 @@ class AdsdkPlugin: FlutterPlugin, MethodCallHandler {
 
       val smallNativeAdFactory: GoogleMobileAdsPlugin.NativeAdFactory = CustomNativeAdSmall(context)
       GoogleMobileAdsPlugin.registerNativeAdFactory(flutterEngine, "smallNativeAdView", smallNativeAdFactory)
+
+      val smallerNativeAdFactory: GoogleMobileAdsPlugin.NativeAdFactory = CustomNativeAdSmaller(context)
+      GoogleMobileAdsPlugin.registerNativeAdFactory(flutterEngine, "smallerNativeAdView", smallerNativeAdFactory)
       result.success(true)
     } else {
       result.notImplemented()
@@ -42,5 +45,6 @@ class AdsdkPlugin: FlutterPlugin, MethodCallHandler {
     channel.setMethodCallHandler(null)
     GoogleMobileAdsPlugin.unregisterNativeAdFactory(flutterEngine, "nativeAdView");
     GoogleMobileAdsPlugin.unregisterNativeAdFactory(flutterEngine, "smallNativeAdView");
+    GoogleMobileAdsPlugin.unregisterNativeAdFactory(flutterEngine, "smallerNativeAdView");
   }
 }
