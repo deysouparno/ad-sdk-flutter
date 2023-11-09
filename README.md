@@ -28,6 +28,41 @@ Update your app's `ios/Runner/Info.plist` file to add the key:
 
 * You have to add `SKAdNetworkItems` for all networks provided by ad-sdk-flutter [info.plist](/example/ios/Runner/Info.plist) you can copy paste `SKAdNetworkItems` in  your own project.
 
+#### Native templates for IOS
+
+* Copy paste the files from `native_templates` folder to `ios/Runner` folder
+* Add files to xcode by clicking `add files to 'Runner'`
+* Edit `AppDelegate.swift` and add
+```swift
+import google_mobile_ads
+
+@UIApplicationMain
+@objc class AppDelegate: FlutterAppDelegate {
+  override func application(
+    _ application: UIApplication,
+    didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?
+  ) -> Bool {
+    ...
+    ...
+    let customNativeAdFactory = CustomNativeAdFactory()
+      FLTGoogleMobileAdsPlugin.registerNativeAdFactory(
+          self, factoryId: "nativeAdView", nativeAdFactory: customNativeAdFactory)
+      
+      let customNativeAdFactorySmall = CustomNativeAdFactorySmall()
+      FLTGoogleMobileAdsPlugin.registerNativeAdFactory(
+          self, factoryId: "smallerNativeAdView", nativeAdFactory: customNativeAdFactorySmall)
+      
+      let customNativeAdFactoryMedium = CustomNativeAdFactoryMedium()
+      FLTGoogleMobileAdsPlugin.registerNativeAdFactory(
+          self, factoryId: "smallNativeAdView", nativeAdFactory: customNativeAdFactoryMedium)
+
+    ...
+    ...
+  }
+}
+```
+
+
 ### Android
 
 #### Update AndroidManifest.xml
