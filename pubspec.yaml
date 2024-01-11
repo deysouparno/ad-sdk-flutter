@@ -18,6 +18,7 @@ dependencies:
   gdpr_dialog: 
     git:
       url: https://github.com/angshuman-barpujari-appyhigh/gdpr_dialog
+      ref: master
   google_mobile_ads: ^4.0.0
   http: any
   plugin_platform_interface: ^2.1.6
